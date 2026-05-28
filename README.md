@@ -14,23 +14,37 @@
 - Python 3 + pip
 - [ripgrep](https://github.com/BurntSushi/ripgrep)（Telescope の grep 検索用）
 - [fd](https://github.com/sharkdp/fd)（Telescope のファイル検索用）
-- C コンパイラ（gcc / clang）— Treesitter パーサーのビルドに必要
+- C コンパイラ — Treesitter パーサーのビルドに必要（Linux: gcc / clang、Windows: zig）
 - 任意: Go, Rust, [Claude Code](https://github.com/anthropics/claude-code)
 
-## セットアップ（Ubuntu）
+## セットアップ
+
+### Ubuntu / Linux
 
 ```bash
 git clone git@github.com:maton369/Neovim-Config.git ~/.config/nvim
 ~/.config/nvim/setup.sh
 ```
 
+### Windows（PowerShell）
+
+```powershell
+git clone git@github.com:maton369/Neovim-Config.git $env:LOCALAPPDATA\nvim
+powershell -ExecutionPolicy Bypass -File $env:LOCALAPPDATA\nvim\setup.ps1
+```
+
+> Windows では設定は `%LOCALAPPDATA%\nvim`（`~\AppData\Local\nvim`）に配置されます。
+
 セットアップスクリプトが依存ツールのインストールと設定の配置を行います。プラグインは初回起動時に自動でインストールされます。
 
-## 手動セットアップ
+### 手動セットアップ
 
 ```bash
-# 設定を clone
+# Linux / macOS
 git clone git@github.com:maton369/Neovim-Config.git ~/.config/nvim
+
+# Windows (PowerShell)
+git clone git@github.com:maton369/Neovim-Config.git $env:LOCALAPPDATA\nvim
 
 # Neovim を起動（プラグインは lazy.nvim により自動インストール）
 nvim
@@ -65,7 +79,8 @@ nvim
 │       ├── tmux.lua         # tmux 連携（smart-splits）
 │       ├── utilities.lua    # Spectre, Harpoon, Undotree など
 │       └── whichkey.lua     # キーバインドヒントポップアップ
-└── setup.sh                 # Ubuntu 向けセットアップスクリプト
+├── setup.sh                 # Linux 向けセットアップスクリプト
+└── setup.ps1                # Windows 向けセットアップスクリプト
 ```
 
 ## キーバインド
