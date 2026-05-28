@@ -16,11 +16,19 @@ sudo apt install -y \
   git curl wget unzip \
   build-essential cmake \
   ripgrep fd-find \
-  python3 python3-pip python3-venv
+  python3 python3-pip python3-venv \
+  luarocks lua5.1 liblua5.1-0-dev libmagickwand-dev
 
 # fd-find is installed as 'fdfind' on Ubuntu; create symlink
 if command -v fdfind &>/dev/null && ! command -v fd &>/dev/null; then
   sudo ln -sf "$(which fdfind)" /usr/local/bin/fd
+fi
+
+# image.nvim (kitty graphics backend) needs lua-magick. Build it against
+# the system Lua 5.1 / ImageMagick libs installed above.
+if command -v luarocks &>/dev/null && ! [ -f "$HOME/.luarocks/lib/lua/5.1/magick.so" ]; then
+  luarocks --local --lua-version=5.1 install magick || \
+    echo "warning: luarocks install magick failed; image.nvim image rendering will be unavailable"
 fi
 
 # -----------------------------------------------------------

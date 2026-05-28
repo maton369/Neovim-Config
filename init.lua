@@ -40,6 +40,13 @@ vim.api.nvim_create_autocmd("VimEnter", {
   once = true,
   callback = function()
     vim.defer_fn(function()
+      -- 0. Lazy install UI など floating window が出ているうちはレイアウト構築を skip。
+      --    (only/split が floating window しか残らない / 衝突するとエラーになる)
+      for _, win in ipairs(vim.api.nvim_list_wins()) do
+        if vim.api.nvim_win_get_config(win).relative ~= "" then
+          return
+        end
+      end
       -- 1. ターミナルバッファを全て削除
       for _, buf in ipairs(vim.api.nvim_list_bufs()) do
         if vim.bo[buf].buftype == "terminal" then
@@ -48,7 +55,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
       end
       -- 2. ウィンドウを1つにリセット（確実に白紙から組み立てる）
       pcall(vim.cmd, "Neotree close")
-      vim.cmd("only")
+      pcall(vim.cmd, "only")
       -- 3. 下にターミナル
       local height = math.floor(vim.o.lines * 0.2)
       vim.cmd("belowright split | terminal")
