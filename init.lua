@@ -6,6 +6,18 @@ local home = vim.fn.expand("$HOME")
 package.path = package.path .. ";" .. home .. "/.luarocks/share/lua/5.1/?.lua;" .. home .. "/.luarocks/share/lua/5.1/?/init.lua"
 package.cpath = package.cpath .. ";" .. home .. "/.luarocks/lib/lua/5.1/?.so"
 
+-- ~/.local/bin を PATH 先頭に prepend (nvim 起動元 shell context によらず
+-- mason / claude / nvm-installed node や ~/.local/go を確実に発見させるため)。
+-- 重複は除いて先頭に 1 つだけ配置。
+local local_bin = home .. "/.local/bin"
+local kept = {}
+for entry in string.gmatch(vim.env.PATH or "", "[^:]+") do
+  if entry ~= local_bin then
+    table.insert(kept, entry)
+  end
+end
+vim.env.PATH = local_bin .. ":" .. table.concat(kept, ":")
+
 require("options")
 require("keymaps")
 
@@ -55,7 +67,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
       vim.cmd("wincmd h")
       -- 7. Neo-tree を開く
       pcall(vim.cmd, "Neotree show")
-    end, 100)
+    end, 500)
   end,
 })
 
