@@ -110,10 +110,11 @@ else
 fi
 
 # -----------------------------------------------------------
-# 7. Python venv for notebook (.ipynb) support
+# 7. Python venv for notebook (.ipynb) + Python tooling
 #    - jupytext: BufReadPost autocmd が .ipynb を py:percent に変換するのに使用
 #    - pynvim / jupyter_client / ipykernel: molten-nvim 用
 #    - jupyter: 一通り使えるよう
+#    - ruff: formatting.lua の conform formatter + nvim-lint linter
 # -----------------------------------------------------------
 echo "[7/7] Setting up notebook venv..."
 VENV_DIR="$HOME/.config/nvim/venv"
@@ -121,10 +122,11 @@ if [ ! -d "$VENV_DIR" ]; then
   python3 -m venv "$VENV_DIR"
 fi
 "$VENV_DIR/bin/pip" install --upgrade pip setuptools wheel
-"$VENV_DIR/bin/pip" install pynvim jupyter_client ipykernel jupytext jupyter
-# jupytext を PATH に通す (notebook.lua の BufReadPost がベア `jupytext` を呼ぶため)
+"$VENV_DIR/bin/pip" install pynvim jupyter_client ipykernel jupytext jupyter ruff
+# notebook.lua / formatting.lua がベア名でこれらを呼ぶので PATH に通す
 mkdir -p "$HOME/.local/bin"
 ln -sf "$VENV_DIR/bin/jupytext" "$HOME/.local/bin/jupytext"
+ln -sf "$VENV_DIR/bin/ruff" "$HOME/.local/bin/ruff"
 echo "Notebook venv ready at $VENV_DIR"
 
 echo ""

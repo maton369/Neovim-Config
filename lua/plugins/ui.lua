@@ -291,12 +291,9 @@ return {
         },
       },
     },
-    init = function()
-      vim.api.nvim_create_autocmd("VimEnter", {
-        callback = function()
-          vim.schedule(function() vim.cmd("Neotree show") end)
-        end,
-      })
-    end,
+    -- 起動時の Neotree 表示は init.lua の VimEnter layout autocmd が担当する
+    -- (ここで重ねて vim.schedule すると window 1000 への戻り先参照が遅延 callback で
+    --  発火する頃に init.lua の `only` でその window が消えていて Invalid window id
+    --  エラーになる)。
   }
 }
