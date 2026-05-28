@@ -1,0 +1,302 @@
+return {
+  {
+    "lewis6991/gitsigns.nvim",
+    event = { "BufReadPre", "BufNewFile" },
+    opts = {},
+  },
+  {
+    "nvim-lualine/lualine.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    opts = function()
+      local function hints()
+        local ft = vim.bo.filetype
+        if ft == "python" and vim.api.nvim_buf_get_name(0):match("%.ipynb$") then
+          return "␣mi:Init ␣mx:Run ␣ma:All ]c[c:Move ␣my:Copy ␣?:Help"
+        elseif ft == "toggleterm" then
+          return "C-\\:Toggle C-h/k:Win ␣tt:Term ␣?:Help"
+        elseif ft == "neo-tree" then
+          return "C-l:Editor ␣e:Toggle ␣gs:Git ␣?:Help"
+        elseif ft == "go" then
+          return "␣cgt:Test ␣cgr:Run ␣cge:IfErr ␣?:Help"
+        elseif ft == "csv" or ft == "tsv" then
+          return "␣cv:CSV View ␣?:Help"
+        elseif ft == "markdown" then
+          return "␣mp:Preview ␣?:Help"
+        end
+        return "C-h/j/k/l:Win S-h/l:Buf ␣fb:Bufs ␣ff:Files ␣fg:Grep ␣tt:Term ␣?:Help"
+      end
+      local hints_component = { hints, color = { fg = "#7f849c" } }
+      local neotree_ext = {
+        sections = {
+          lualine_a = { function() return "Explorer" end },
+          lualine_c = { { function() return "< >:Tab ?:Help" end, color = { fg = "#7f849c" } } },
+        },
+        inactive_sections = {
+          lualine_a = { function() return "Explorer" end },
+          lualine_c = { { function() return "< >:Tab ?:Help" end, color = { fg = "#7f849c" } } },
+        },
+        filetypes = { "neo-tree" },
+      }
+      local toggleterm_ext = {
+        sections = {
+          lualine_a = { function() return "Terminal" end },
+          lualine_c = { { function() return "C-\\:Toggle C-h/k:Win ␣tt:Term ␣?:Help" end, color = { fg = "#7f849c" } } },
+        },
+        inactive_sections = {
+          lualine_a = { function() return "Terminal" end },
+          lualine_c = { { function() return "C-\\:Toggle C-h/k:Win ␣tt:Term ␣?:Help" end, color = { fg = "#7f849c" } } },
+        },
+        filetypes = { "toggleterm" },
+      }
+      return {
+        sections = {
+          lualine_c = { "filename", hints_component },
+        },
+        inactive_sections = {
+          lualine_c = { "filename", hints_component },
+        },
+        extensions = { neotree_ext, toggleterm_ext },
+      }
+    end,
+  },
+  {
+    "lukas-reineke/indent-blankline.nvim",
+    main = "ibl",
+    event = { "BufReadPre", "BufNewFile" },
+    opts = {},
+  },
+  -- noice.nvim（コマンドライン・検索・通知の UI 刷新）
+  {
+    "folke/noice.nvim",
+    event = "VeryLazy",
+    dependencies = {
+      "MunifTanjim/nui.nvim",
+      "rcarriga/nvim-notify",
+    },
+    opts = {
+      lsp = {
+        override = {
+          ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+          ["vim.lsp.util.stylize_markdown"] = true,
+          ["cmp.entry.get_documentation"] = true,
+        },
+      },
+      presets = {
+        bottom_search = true,
+        command_palette = true,
+        long_message_to_split = true,
+        inc_rename = true,
+        lsp_doc_border = true,
+      },
+    },
+  },
+  -- nvim-notify（通知ポップアップ）
+  {
+    "rcarriga/nvim-notify",
+    opts = {
+      timeout = 3000,
+      max_height = function() return math.floor(vim.o.lines * 0.75) end,
+      max_width = function() return math.floor(vim.o.columns * 0.75) end,
+    },
+  },
+  -- dropbar.nvim（パンくずリスト winbar）
+  {
+    "Bekaboo/dropbar.nvim",
+    event = { "BufReadPre", "BufNewFile" },
+    opts = {
+      bar = {
+        enable = function(buf, win)
+          -- .ipynb ではnotebook.lua側のwinbarを使うため無効化
+          local name = vim.api.nvim_buf_get_name(buf)
+          if name:match("%.ipynb$") then return false end
+          return vim.fn.win_gettype(win) == ""
+        end,
+      },
+    },
+  },
+  -- dashboard-nvim（起動画面）
+  {
+    "nvimdev/dashboard-nvim",
+    event = "VimEnter",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    opts = {
+      theme = "hyper",
+      config = {
+        week_header = { enable = true },
+        shortcut = {
+          { desc = " Find File", group = "Label", action = "Telescope find_files", key = "f" },
+          { desc = " Recent", group = "Label", action = "Telescope oldfiles", key = "r" },
+          { desc = " Grep", group = "Label", action = "Telescope live_grep", key = "g" },
+          { desc = " Lazy", group = "Label", action = "Lazy", key = "l" },
+          { desc = " Quit", group = "Label", action = "qa", key = "q" },
+        },
+      },
+    },
+  },
+  -- twilight.nvim（カーソル周辺以外を薄暗く表示）
+  {
+    "folke/twilight.nvim",
+    keys = {
+      { "<leader>tw", "<cmd>Twilight<cr>", desc = "Twilight toggle" },
+    },
+    opts = {},
+  },
+  -- tint.nvim（非アクティブウィンドウを薄暗く表示）
+  {
+    "levouh/tint.nvim",
+    event = "VeryLazy",
+    opts = {
+      tint = -45,
+      saturation = 0.6,
+    },
+  },
+  -- neominimap.nvim（コードミニマップ）
+  {
+    "Isrothy/neominimap.nvim",
+    version = "v3.*.*",
+    event = "VeryLazy",
+    init = function()
+      vim.g.neominimap = {
+        auto_enable = false,
+      }
+    end,
+    keys = {
+      { "<leader>nm", "<cmd>Neominimap toggle<cr>", desc = "Minimap toggle" },
+    },
+  },
+  -- zen-mode（集中モード）
+  {
+    "folke/zen-mode.nvim",
+    keys = {
+      { "<leader>z", "<cmd>ZenMode<cr>", desc = "Zen Mode" },
+    },
+    opts = {
+      window = { width = 120 },
+    },
+  },
+  -- lsp_lines（診断を仮想行で表示）
+  {
+    "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
+    event = "LspAttach",
+    config = function()
+      require("lsp_lines").setup()
+      -- デフォルトの virtual_text を無効化（lsp_lines と重複するため）
+      vim.diagnostic.config({ virtual_text = false })
+    end,
+    keys = {
+      {
+        "<leader>dl",
+        function()
+          local new = not vim.diagnostic.config().virtual_lines
+          vim.diagnostic.config({ virtual_lines = new, virtual_text = not new })
+        end,
+        desc = "Toggle lsp_lines",
+      },
+    },
+  },
+  -- nvim-scrollbar（スクロールバーに診断・検索・Git 表示）
+  {
+    "petertriho/nvim-scrollbar",
+    event = "VeryLazy",
+    dependencies = { "lewis6991/gitsigns.nvim" },
+    config = function()
+      require("scrollbar").setup()
+      require("scrollbar.handlers.gitsigns").setup()
+    end,
+  },
+  -- oil.nvim（ファイルシステムをバッファとして編集）
+  {
+    "stevearc/oil.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    keys = {
+      { "-", "<cmd>Oil<cr>", desc = "Oil: Open parent dir" },
+    },
+    opts = {
+      view_options = {
+        show_hidden = true,
+      },
+    },
+  },
+  -- smart-splits（Neovim⇔tmux/kitty のウィンドウ移動統一）
+  {
+    "mrjones2014/smart-splits.nvim",
+    event = "VeryLazy",
+    config = function()
+      local ss = require("smart-splits")
+      ss.setup()
+      vim.keymap.set("n", "<C-h>", ss.move_cursor_left, { desc = "Move left" })
+      vim.keymap.set("n", "<C-j>", ss.move_cursor_down, { desc = "Move down" })
+      vim.keymap.set("n", "<C-k>", ss.move_cursor_up, { desc = "Move up" })
+      vim.keymap.set("n", "<C-l>", ss.move_cursor_right, { desc = "Move right" })
+      vim.keymap.set("n", "<M-h>", ss.resize_left, { desc = "Resize left" })
+      vim.keymap.set("n", "<M-j>", ss.resize_down, { desc = "Resize down" })
+      vim.keymap.set("n", "<M-k>", ss.resize_up, { desc = "Resize up" })
+      vim.keymap.set("n", "<M-l>", ss.resize_right, { desc = "Resize right" })
+    end,
+  },
+  -- yazi.nvim（フローティングファイルマネージャ）
+  {
+    "mikavilpas/yazi.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    keys = {
+      { "<leader>y", "<cmd>Yazi<cr>", desc = "Yazi (current file)" },
+      { "<leader>Y", "<cmd>Yazi cwd<cr>", desc = "Yazi (cwd)" },
+    },
+    opts = {},
+  },
+  {
+    "nvim-neo-tree/neo-tree.nvim",
+    branch = "v3.x",
+    lazy = false,
+    dependencies = { 
+      "nvim-lua/plenary.nvim", 
+      "nvim-tree/nvim-web-devicons", 
+      "MunifTanjim/nui.nvim" 
+    },
+    keys = {
+      { "<leader>e", "<cmd>Neotree toggle<cr>", desc = "Explorer NeoTree" },
+      { "<leader>gs", "<cmd>Neotree git_status toggle<cr>", desc = "Git Status (Neo-tree)" },
+    },
+    opts = {
+      source_selector = {
+        winbar = true,
+        sources = {
+          { source = "filesystem", display_name = " Files" },
+          { source = "git_status", display_name = " Git" },
+          { source = "buffers", display_name = " Bufs" },
+        },
+      },
+      window = {
+        width = 25,
+      },
+      filesystem = {
+        filtered_items = {
+          hide_dotfiles = false,
+          hide_gitignored = false,
+        },
+      },
+      default_component_configs = {
+        git_status = {
+          symbols = {
+            added     = "✚",
+            modified  = "",
+            deleted   = "✖",
+            renamed   = "󰁕",
+            untracked = "",
+            ignored   = "",
+            unstaged  = "󰄱",
+            staged    = "",
+            conflict  = "",
+          },
+        },
+      },
+    },
+    init = function()
+      vim.api.nvim_create_autocmd("VimEnter", {
+        callback = function()
+          vim.schedule(function() vim.cmd("Neotree show") end)
+        end,
+      })
+    end,
+  }
+}
