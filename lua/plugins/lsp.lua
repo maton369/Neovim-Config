@@ -1,3 +1,23 @@
+local lang = require("lang_detect")
+
+-- インストールするツールチェインが揃っているものだけを mason ensure_installed に積む。
+-- いない言語の LSP を入れようとすると mason が ENOENT (npm/go 等) で毎回エラーを吐く。
+local ensure_installed = { "lua_ls" } -- lua_ls は mason 配布バイナリで常に install 可
+if lang.python and lang.node then
+  table.insert(ensure_installed, "pyright") -- pyright は npm パッケージ
+end
+if lang.go then
+  table.insert(ensure_installed, "gopls") -- gopls は go install build
+end
+if lang.rust then
+  table.insert(ensure_installed, "rust_analyzer")
+end
+if lang.node then
+  vim.list_extend(ensure_installed, {
+    "jsonls", "yamlls", "html", "cssls", "bashls", "dockerls", "tailwindcss",
+  })
+end
+
 return {
   {
     "neovim/nvim-lspconfig",
@@ -5,19 +25,7 @@ return {
     config = function()
       require("mason").setup()
       require("mason-lspconfig").setup({
-        ensure_installed = {
-          "lua_ls",
-          "pyright",
-          "gopls",
-          "rust_analyzer",
-          "jsonls",
-          "yamlls",
-          "html",
-          "cssls",
-          "bashls",
-          "dockerls",
-          "tailwindcss",
-        },
+        ensure_installed = ensure_installed,
         automatic_enable = { exclude = { "yamlls" } },
       })
 

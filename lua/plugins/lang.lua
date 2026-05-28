@@ -1,7 +1,10 @@
+local lang = require("lang_detect")
+
 return {
   -- Go 開発ツール
   {
     "ray-x/go.nvim",
+    enabled = lang.go,
     dependencies = {
       "ray-x/guihua.lua",
       "neovim/nvim-lspconfig",
@@ -26,6 +29,7 @@ return {
   -- TypeScript 強化（ts_ls より高速な専用 LSP）
   {
     "pmizio/typescript-tools.nvim",
+    enabled = lang.node,
     dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
     ft = { "typescript", "typescriptreact", "javascript", "javascriptreact" },
     opts = {
@@ -57,6 +61,7 @@ return {
   -- Tailwind CSS カラーヒント・クラス補完
   {
     "luckasRanarison/tailwind-tools.nvim",
+    enabled = lang.node, -- tailwindcss-language-server (npm) に依存
     name = "tailwind-tools",
     build = ":UpdateRemotePlugins",
     dependencies = { "nvim-treesitter/nvim-treesitter" },
@@ -67,6 +72,7 @@ return {
   -- YAML スキーマ選択（Kubernetes, GitHub Actions 等）
   {
     "someone-stole-my-name/yaml-companion.nvim",
+    enabled = lang.node, -- yamlls (npm) を setup する
     dependencies = {
       "neovim/nvim-lspconfig",
       "nvim-lua/plenary.nvim",
@@ -95,12 +101,14 @@ return {
   -- Rust 開発ツール
   {
     "mrcjkb/rustaceanvim",
+    enabled = lang.rust,
     version = "^5",
     lazy = false,
   },
   -- Cargo.toml のバージョン管理
   {
     "saecki/crates.nvim",
+    enabled = lang.rust,
     event = { "BufRead Cargo.toml" },
     opts = {
       completion = {
@@ -178,6 +186,7 @@ return {
   -- live-server（HTML ライブリロード）
   {
     "barrett-ruth/live-server.nvim",
+    enabled = lang.node, -- build hook が `npm i -g live-server` を走らせる
     cmd = { "LiveServerStart", "LiveServerStop" },
     build = "npm i -g live-server",
     keys = {

@@ -1,3 +1,5 @@
+local lang = require("lang_detect")
+
 -- カーソル位置のセルの出力画像をクリップボードにコピー（macOS）
 local function copy_cell_image()
   local ok, image_api = pcall(require, "image")
@@ -86,9 +88,13 @@ vim.api.nvim_create_autocmd("BufEnter", {
   end,
 })
 
--- .ipynb をメモリ上で Python percent 形式に変換（中間ファイル不要）
+-- .ipynb をメモリ上で Python percent 形式に変換（中間ファイル不要）。
+-- jupytext が無いマシン (notebook 用 venv 未構築) では autocmd 自体登録しない。
+-- 登録だけして system 呼び出しが silent fail すると buffer が JSON のまま残って
+-- 何が起きたか分からなくなるので、明示的に gate する。
 local ipynb_group = vim.api.nvim_create_augroup("IpynbInMemory", { clear = true })
 
+if lang.notebook then
 vim.api.nvim_create_autocmd("BufReadPost", {
   group = ipynb_group,
   pattern = "*.ipynb",
@@ -154,10 +160,12 @@ vim.api.nvim_create_autocmd("BufWriteCmd", {
     end
   end,
 })
+end -- if lang.notebook (BufReadPost / BufWriteCmd 一括 gate)
 
 return {
   {
     "benlubas/molten-nvim",
+    enabled = lang.notebook,
     version = "^1.0.0",
     build = ":UpdateRemotePlugins",
     lazy = false,
@@ -188,6 +196,7 @@ return {
   },
   {
     "GCBallesteros/NotebookNavigator.nvim",
+    enabled = lang.notebook,
     dependencies = {
       "echasnovski/mini.comment",
       "benlubas/molten-nvim",
@@ -212,6 +221,7 @@ return {
   -- Jupyter カーネル補完（nvim-cmp ソース）
   {
     "lkhphuc/jupyter-kernel.nvim",
+    enabled = lang.notebook,
     opts = { timeout = 0.5 },
     cmd = { "JupyterAttach", "JupyterInspect", "JupyterExecute" },
     keys = {
@@ -221,6 +231,7 @@ return {
   -- Jupynium（ブラウザ同期 Jupyter）
   {
     "kiyoon/jupynium.nvim",
+    enabled = lang.notebook, -- build hook が venv の pip を叩く
     build = vim.fn.expand("~/.config/nvim/venv/bin/pip") .. " install jupynium",
     cmd = { "JupyniumStartAndAttachToServer", "JupyniumStartSync" },
     keys = {
