@@ -1,107 +1,107 @@
 # Neovim Config
 
-Personal Neovim configuration built with [lazy.nvim](https://github.com/folke/lazy.nvim).
+[lazy.nvim](https://github.com/folke/lazy.nvim) ベースの個人用 Neovim 設定です。
 
-## Screenshot
+## 起動時のレイアウト
 
-On startup, Neovim opens with Neo-tree (left), editor (center-top), terminal (center-bottom), and Claude Code (right).
+起動すると Neo-tree（左）、エディタ（中央上）、ターミナル（中央下）、Claude Code（右）が自動で配置されます。
 
-## Requirements
+## 必要なもの
 
 - Neovim >= 0.10
 - Git
-- Node.js >= 18 (for Mason LSP servers)
+- Node.js >= 18（Mason LSP サーバーに必要）
 - Python 3 + pip
-- [ripgrep](https://github.com/BurntSushi/ripgrep) (for Telescope live grep)
-- [fd](https://github.com/sharkdp/fd) (for Telescope find files)
-- C compiler (gcc/clang) for Treesitter parsers
-- Optional: Go, Rust, [Claude Code](https://github.com/anthropics/claude-code)
+- [ripgrep](https://github.com/BurntSushi/ripgrep)（Telescope の grep 検索用）
+- [fd](https://github.com/sharkdp/fd)（Telescope のファイル検索用）
+- C コンパイラ（gcc / clang）— Treesitter パーサーのビルドに必要
+- 任意: Go, Rust, [Claude Code](https://github.com/anthropics/claude-code)
 
-## Quick Setup (Ubuntu)
+## セットアップ（Ubuntu）
 
 ```bash
 git clone git@github.com:maton369/Neovim-Config.git ~/.config/nvim
 ~/.config/nvim/setup.sh
 ```
 
-The setup script installs all dependencies and clones this config. Plugins install automatically on first launch.
+セットアップスクリプトが依存ツールのインストールと設定の配置を行います。プラグインは初回起動時に自動でインストールされます。
 
-## Manual Setup
+## 手動セットアップ
 
 ```bash
-# Clone config
+# 設定を clone
 git clone git@github.com:maton369/Neovim-Config.git ~/.config/nvim
 
-# Launch Neovim (plugins auto-install via lazy.nvim)
+# Neovim を起動（プラグインは lazy.nvim により自動インストール）
 nvim
 ```
 
-## Structure
+## ディレクトリ構成
 
 ```
 ~/.config/nvim/
-├── init.lua                 # Entry point: leader key, lazy.nvim bootstrap, startup layout
+├── init.lua                 # エントリーポイント: リーダーキー、lazy.nvim、起動レイアウト
 ├── lua/
-│   ├── options.lua          # Editor options (line numbers, indent, search, etc.)
-│   ├── keymaps.lua          # Global keymaps and cheatsheet command
+│   ├── options.lua          # エディタ設定（行番号、インデント、検索など）
+│   ├── keymaps.lua          # グローバルキーマップ、チートシートコマンド
 │   └── plugins/
-│       ├── colorscheme.lua  # Catppuccin theme
-│       ├── lsp.lua          # LSP config, Mason, nvim-cmp completion
-│       ├── treesitter.lua   # Syntax highlighting, text objects
-│       ├── telescope.lua    # Fuzzy finder
-│       ├── ui.lua           # Lualine, Neo-tree, Noice, Oil, etc.
+│       ├── colorscheme.lua  # Catppuccin テーマ
+│       ├── lsp.lua          # LSP 設定、Mason、nvim-cmp 補完
+│       ├── treesitter.lua   # シンタックスハイライト、テキストオブジェクト
+│       ├── telescope.lua    # ファジーファインダー
+│       ├── ui.lua           # Lualine, Neo-tree, Noice, Oil など
 │       ├── git.lua          # Gitsigns, LazyGit, git-worktree
-│       ├── editing.lua      # Flash, multi-cursor, surround, autopairs
+│       ├── editing.lua      # Flash, マルチカーソル, surround, autopairs
 │       ├── terminal.lua     # ToggleTerm
-│       ├── debug.lua        # DAP (debugger)
+│       ├── debug.lua        # DAP（デバッガー）
 │       ├── testing.lua      # Neotest
 │       ├── formatting.lua   # conform.nvim
-│       ├── notebook.lua     # Jupyter notebook support (Jupynium, Molten)
-│       ├── markdown.lua     # Markdown preview
-│       ├── lang.lua         # Language-specific (Go, Rust, Tailwind, etc.)
-│       ├── image.lua        # Image preview in terminal
+│       ├── notebook.lua     # Jupyter ノートブック（Jupynium, Molten）
+│       ├── markdown.lua     # Markdown プレビュー
+│       ├── lang.lua         # 言語別設定（Go, Rust, Tailwind など）
+│       ├── image.lua        # ターミナル内画像プレビュー
 │       ├── remote.lua       # distant.nvim, devcontainer
-│       ├── diffview.lua     # Diff viewer
-│       ├── tmux.lua         # Tmux integration (smart-splits)
-│       ├── utilities.lua    # Spectre, Harpoon, Undotree, etc.
-│       └── whichkey.lua     # Keybinding hints popup
-└── setup.sh                 # One-line setup script for Ubuntu
+│       ├── diffview.lua     # 差分ビューア
+│       ├── tmux.lua         # tmux 連携（smart-splits）
+│       ├── utilities.lua    # Spectre, Harpoon, Undotree など
+│       └── whichkey.lua     # キーバインドヒントポップアップ
+└── setup.sh                 # Ubuntu 向けセットアップスクリプト
 ```
 
-## Key Bindings
+## キーバインド
 
-Leader key: `Space`
+リーダーキー: `Space`
 
-| Category | Key | Action |
-|----------|-----|--------|
-| **File** | `SPC ff` | Find files |
-| | `SPC fg` | Live grep |
-| | `SPC fb` | Buffers |
-| | `SPC e` | Toggle Neo-tree |
-| **LSP** | `gd` | Go to definition |
-| | `gr` | References |
-| | `K` | Hover |
-| | `SPC rn` | Rename |
-| | `SPC ca` | Code action |
+| カテゴリ | キー | 機能 |
+|----------|------|------|
+| **ファイル** | `SPC ff` | ファイル検索 |
+| | `SPC fg` | テキスト検索（grep） |
+| | `SPC fb` | バッファ一覧 |
+| | `SPC e` | Neo-tree 開閉 |
+| **LSP** | `gd` | 定義へジャンプ |
+| | `gr` | 参照一覧 |
+| | `K` | ホバー情報 |
+| | `SPC rn` | リネーム |
+| | `SPC ca` | コードアクション |
 | **Git** | `SPC gg` | LazyGit |
-| | `SPC gc` | Git commits |
+| | `SPC gc` | コミット履歴 |
 | | `SPC gB` | Git blame |
-| **Debug** | `SPC bb` | Toggle breakpoint |
-| | `SPC bc` | Continue |
-| | `SPC bu` | Toggle debug UI |
-| **Test** | `SPC Tn` | Run nearest test |
-| | `SPC Tf` | Run file tests |
-| **Window** | `C-h/j/k/l` | Move between windows (tmux-aware) |
-| | `S-h / S-l` | Prev/next buffer |
-| **Other** | `SPC ?` | Show full cheatsheet |
-| | `SPC tc` | Focus Claude terminal |
+| **デバッグ** | `SPC bb` | ブレークポイント切替 |
+| | `SPC bc` | 実行継続 |
+| | `SPC bu` | デバッグ UI 切替 |
+| **テスト** | `SPC Tn` | 最寄りのテスト実行 |
+| | `SPC Tf` | ファイル内テスト実行 |
+| **ウィンドウ** | `C-h/j/k/l` | ウィンドウ移動（tmux 対応） |
+| | `S-h / S-l` | 前後のバッファ |
+| **その他** | `SPC ?` | チートシート表示 |
+| | `SPC tc` | Claude ターミナルにフォーカス |
 
-Run `:Cheatsheet` in Neovim for the complete keybinding reference.
+Neovim 内で `:Cheatsheet` を実行すると全キーバインドを確認できます。
 
-## LSP Servers (auto-installed by Mason)
+## LSP サーバー（Mason で自動インストール）
 
 lua_ls, pyright, gopls, rust_analyzer, jsonls, yamlls, html, cssls, bashls, dockerls, tailwindcss
 
-## License
+## ライセンス
 
 MIT
