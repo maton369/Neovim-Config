@@ -214,7 +214,34 @@ return {
       vim.api.nvim_create_autocmd("ColorScheme", { callback = set_molten_hl })
     end,
     keys = {
-      { "<leader>mi", "<cmd>MoltenInit<cr>", desc = "Molten: Init kernel" },
+      -- 既にこの buffer に kernel が attach 済みの場合は再 init を抑止。
+      -- <leader>mi を連打しても kernel が増殖しない (= "lab-cpu_1", "lab-cpu_2" …
+      -- と orphan が並ぶ事故を防ぐ)。 強制的に新規 kernel を立てたい場合は
+      -- <leader>mI (大文字) を使う。 既存 kernel を作り直したい時は :MoltenRestart!
+      {
+        "<leader>mi",
+        function()
+          local ok, running = pcall(vim.fn.MoltenRunningKernels, true)
+          if ok and type(running) == "table" and #running > 0 then
+            vim.notify(
+              "Molten: kernel '"
+                .. running[1]
+                .. "' は既にこの buffer に attach 済み。\n"
+                .. "  再作成: :MoltenRestart!\n"
+                .. "  強制新規: <leader>mI",
+              vim.log.levels.WARN
+            )
+            return
+          end
+          vim.cmd("MoltenInit")
+        end,
+        desc = "Molten: Init kernel (skip if already attached)",
+      },
+      {
+        "<leader>mI",
+        "<cmd>MoltenInit<cr>",
+        desc = "Molten: Force new kernel (no gate)",
+      },
       { "<leader>mo", "<cmd>MoltenEvaluateOperator<cr>", desc = "Molten: Evaluate operator" },
       { "<leader>ml", "<cmd>MoltenEvaluateLine<cr>", desc = "Molten: Evaluate line" },
       { "<leader>mr", "<cmd>MoltenReevaluateCell<cr>", desc = "Molten: Re-evaluate cell" },
