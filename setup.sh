@@ -156,6 +156,10 @@ fi
 mkdir -p "$HOME/.local/bin"
 ln -sf "$VENV_DIR/bin/jupytext" "$HOME/.local/bin/jupytext"
 ln -sf "$VENV_DIR/bin/ruff" "$HOME/.local/bin/ruff"
+# jupyter_client が connection JSON を書く runtime dir。 venv の jupyter は
+# XDG_RUNTIME_DIR を見ず fallback の ~/.local/share/jupyter/runtime を期待する
+# (が、 環境によっては自動作成されず ENOENT で :MoltenInit が落ちる)。
+mkdir -p "$HOME/.local/share/jupyter/runtime"
 echo "Notebook venv ready at $VENV_DIR"
 
 # -----------------------------------------------------------
