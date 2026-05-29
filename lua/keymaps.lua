@@ -35,12 +35,23 @@ map("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move line up" })
 -- 検索ハイライト解除
 map("n", "<Esc>", "<cmd>nohlsearch<cr>", { desc = "Clear search highlight" })
 
--- ターミナルモード (`:terminal` / `terminal claude` 等) を抜ける。
--- nvim 標準は <C-\><C-n> で押しづらいので alias を 2 つ用意:
---  - <C-\><C-n> (標準、 残しておく)
---  - <Esc><Esc> ← ダブル Esc。 シングル Esc は claude TUI の cancel 等に届くので
---    競合せず、 すばやく Esc 2 連打で nvim NORMAL に戻れる。
-map("t", "<Esc><Esc>", [[<C-\><C-n>]], { desc = "Terminal: exit to NORMAL" })
+-- ターミナルモード (`:terminal` / `terminal claude` 等) からの操作。
+-- nvim 標準の terminal 抜けは <C-\><C-n> で押しづらい。 ただし Esc 系を上書きすると
+-- claude TUI 等の cancel が壊れるので、 ウィンドウ移動に直接バインドして
+-- 「terminal 抜け + 別 window へ移動」 を 1 ストロークで行えるようにする。
+-- 単に外に出たいだけなら <C-\><C-n> もそのまま使える。
+for _, lr in ipairs({ { "h", "left" }, { "j", "down" }, { "k", "up" }, { "l", "right" } }) do
+  local key, dir = lr[1], lr[2]
+  map("t", "<C-" .. key .. ">", function()
+    vim.cmd("stopinsert")
+    local ok, ss = pcall(require, "smart-splits")
+    if ok then
+      ss["move_cursor_" .. dir]()
+    else
+      vim.cmd("wincmd " .. key)
+    end
+  end, { desc = "Terminal -> move " .. dir })
+end
 
 -- バッファ保存
 map("n", "<leader>w", "<cmd>w<cr>", { desc = "Save" })
