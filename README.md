@@ -5,6 +5,8 @@
 ## 起動時のレイアウト
 
 起動すると Neo-tree（左）、エディタ（中央上）、ターミナル（中央下）、Claude Code（右）が自動で配置されます。
+<img width="1512" height="949" alt="image" src="https://github.com/user-attachments/assets/6a0a6d12-d04b-427d-ab1c-325e04130ee7" />
+
 
 ## 必要なもの
 
