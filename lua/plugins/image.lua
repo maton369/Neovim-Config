@@ -68,6 +68,29 @@ return {
       end
 
       require("image").setup(opts)
+
+      -- molten-nvim → image.nvim の橋渡しモジュール (load_image_nvim) の image_size()
+      -- は「画像の自然サイズ (画像 px ÷ セル px)」 のみ返し、 image.nvim の
+      -- state.options.scale_factor を無視する。 結果 molten が作る float window が
+      -- 自然サイズ通りに小さくなり、 image.nvim 側で scale_factor を上げても効かない。
+      -- ここで image_size を倍率付きでラップして molten に大きい float を作らせる。
+      -- 倍率は opts.scale_factor と一致させる (両者で揃わないと float サイズと
+      -- 画像描画サイズがズレる)。
+      local sf = opts.scale_factor or 1.0
+      if sf > 1.0 then
+        local mol_ok, mol = pcall(require, "load_image_nvim")
+        if mol_ok and mol.image_api and not mol._scale_factor_patched then
+          local orig_image_size = mol.image_api.image_size
+          mol.image_api.image_size = function(id)
+            local size = orig_image_size(id)
+            return {
+              width = math.ceil((size.width or 0) * sf),
+              height = math.ceil((size.height or 0) * sf),
+            }
+          end
+          mol._scale_factor_patched = true
+        end
+      end
     end,
   },
 }
