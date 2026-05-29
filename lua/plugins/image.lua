@@ -9,6 +9,13 @@ return {
       },
       max_width_window_percentage = 100,
       max_height_window_percentage = 100,
+      -- scale_factor は画像をセル換算サイズに変換するときの倍率。 デフォルト 1.0 だと
+      -- matplotlib 標準 figsize (= 600x300 px ≈ 75 col × 30 行) はウィンドウより小さく
+      -- 表示される。 3.0 を入れて scale 後のサイズが必ずウィンドウより大きくなるよう
+      -- にし、 後続の max_*_window_percentage = 100 で window 一杯にクランプさせる。
+      -- renderer.lua の adjust_to_aspect_ratio がアスペクト比を保持するので、
+      -- 縦長/横長画像でも歪まず VSCode notebook の inline 表示と同程度の大きさになる。
+      scale_factor = 3.0,
       window_overlap_clear_enabled = true,
     },
     config = function(_, opts)
