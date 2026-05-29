@@ -20,15 +20,25 @@ return {
       -- しまう (CWD に "tty ではありません" 等の謎ファイルが生まれる)。
       -- backend/kitty/init.lua は require 時に editor_tty を 1 回だけ読むので、
       -- setup() より前に get_tty を上書きして $SSH_TTY を優先させる。
-      local term = require("image.utils.term")
-      local original_get_tty = term.get_tty
-      term.get_tty = function()
-        local env_tty = vim.env.SSH_TTY or vim.env.TTY
-        if env_tty and env_tty:match("^/dev/") then return env_tty end
-        local cmd_tty = original_get_tty()
-        if cmd_tty and cmd_tty:match("^/dev/") then return cmd_tty end
-        -- 無効な値だったら nil。 image.nvim は nil の時 stdout fallback に行く
-        return nil
+      --
+      -- 重要: Lua の require は "image.utils.term" (ドット) と "image/utils/term"
+      -- (スラッシュ) を別キャッシュエントリとして扱う (= 別テーブルが返る)。
+      -- image.nvim 内部はスラッシュ表記を使うのでそちらをパッチする必要がある。
+      local patched_get_tty
+      patched_get_tty = function(original_get_tty)
+        return function()
+          local env_tty = vim.env.SSH_TTY or vim.env.TTY
+          if env_tty and env_tty:match("^/dev/") then return env_tty end
+          local cmd_tty = original_get_tty()
+          if cmd_tty and cmd_tty:match("^/dev/") then return cmd_tty end
+          return nil
+        end
+      end
+      for _, modname in ipairs({ "image/utils/term", "image.utils.term" }) do
+        local ok, term = pcall(require, modname)
+        if ok and type(term) == "table" and type(term.get_tty) == "function" then
+          term.get_tty = patched_get_tty(term.get_tty)
+        end
       end
       require("image").setup(opts)
     end,
