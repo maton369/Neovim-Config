@@ -40,6 +40,26 @@ return {
           term.get_tty = patched_get_tty(term.get_tty)
         end
       end
+
+      -- ローカル PC 側で tmux を使い、 サーバには tmux が無いケース用の hack:
+      -- image.nvim は $TMUX env var を「サーバ側で」 見て tmux 判定するため、
+      -- サーバに tmux が無いと is_tmux=false になり、 kitty graphics を生の APC
+      -- (`\e_G...\e\\`) のまま送出する。 これは手元 PC の tmux に届くと
+      -- (たとえ allow-passthrough on でも) DCS ラップされていないため破棄される。
+      -- is_tmux=true を強制すると image.nvim は `\ePtmux;...\e\\` で DCS ラップして
+      -- 送出し、 手元 tmux が剥がして Ghostty に渡してくれる。
+      -- 副作用: tmux ペイン位置取得 cmd が失敗するが silent fallback で 0,0 になる
+      -- ので画像座標は問題なし。
+      if vim.env.SSH_CLIENT or vim.env.SSH_TTY then
+        for _, modname in ipairs({ "image/utils/tmux", "image.utils.tmux" }) do
+          local ok, tmux = pcall(require, modname)
+          if ok and type(tmux) == "table" then
+            tmux.is_tmux = true
+            tmux.has_passthrough = true
+          end
+        end
+      end
+
       require("image").setup(opts)
     end,
   },
