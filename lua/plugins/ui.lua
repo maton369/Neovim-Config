@@ -22,13 +22,14 @@ return {
         elseif ft == "neo-tree" then
           return "/:Fnd C-x:Clr ⌫↑"
         elseif ft == "go" then
-          return "␣cgt:Test ␣cgr:Run ␣cge:IfErr ␣?:Help"
+          return "␣cgt:Test ␣cgr:Run ␣cge:IfErr /:Find ␣fg:Grep ␣?:Help"
         elseif ft == "csv" or ft == "tsv" then
-          return "␣cv:CSV View ␣?:Help"
+          return "␣cv:CSV View /:Find ␣?:Help"
         elseif ft == "markdown" then
-          return "␣mp:Preview ␣?:Help"
+          return "␣mp:Preview /:Find ␣fg:Grep ␣?:Help"
         end
-        return "C-h/j/k/l:Win S-h/l:Buf ␣fb:Bufs ␣ff:Files ␣fg:Grep ␣tt:Term ␣?:Help"
+        -- 全 ft の fallback。 検索系 (/:buf 内, ␣ff:filename, ␣fg:grep) を必ず含める。
+        return "C-h/j/k/l:Win S-h/l:Buf /:Find ␣ff:Files ␣fg:Grep ␣tt:Term ␣?:Help"
       end
       local hints_component = { hints, color = { fg = "#7f849c" } }
       -- neo-tree pane の statusline ヒント。 pane 幅 (window.width) に収まる長さに
