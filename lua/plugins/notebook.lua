@@ -84,7 +84,8 @@ local function run_all_cells()
   pcall(vim.api.nvim_win_set_cursor, 0, save_pos)
 end
 
--- .ipynb を開いた際にキー操作ガイドを winbar に常時表示
+-- .ipynb を開いた際にキー操作ガイドを winbar に常時表示。
+-- 左側に Notebook (molten) 操作、 区切りを挟んで右側に検索系。
 vim.api.nvim_create_autocmd("BufEnter", {
   pattern = "*.ipynb",
   callback = function()
@@ -102,6 +103,11 @@ vim.api.nvim_create_autocmd("BufEnter", {
       " ␣mh Hide",
       " ␣md Del",
       " ␣my Copy",
+      "%#Comment#│%*",
+      "%#Title# Find %*",
+      " /:Buf n/N:↑↓",
+      " ␣fg:Grep",
+      " ␣ff:File",
     }, " ")
   end,
 })

@@ -16,7 +16,7 @@ return {
         end
         local ft = vim.bo.filetype
         if ft == "python" and vim.api.nvim_buf_get_name(0):match("%.ipynb$") then
-          return "␣mi:Init ␣mx:Run ␣ma:All ]c[c:Move ␣my:Copy ␣?:Help"
+          return "␣mi:Init ␣mx:Run ␣ms:Show ]c[c:Cell /:Find ␣fg:Grep ␣ff:File ␣?:Help"
         elseif ft == "toggleterm" then
           return "C-\\:Toggle C-h/k:Win ␣tt:Term ␣?:Help"
         elseif ft == "neo-tree" then
