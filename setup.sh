@@ -38,7 +38,8 @@ sudo apt install -y \
   build-essential cmake \
   ripgrep fd-find \
   python3 python3-pip python3-venv \
-  luarocks lua5.1 liblua5.1-0-dev libmagickwand-dev
+  luarocks lua5.1 liblua5.1-0-dev libmagickwand-dev \
+  xclip wl-clipboard
 
 # fd-find is installed as 'fdfind' on Ubuntu; create symlink
 if command -v fdfind &>/dev/null && ! command -v fd &>/dev/null; then
@@ -129,10 +130,18 @@ fi
 # 6. Neovim config
 # -----------------------------------------------------------
 echo "[6/8] Setting up Neovim config..."
+REPO_SSH="git@github.com:maton369/Neovim-Config.git"
+REPO_HTTPS="https://github.com/maton369/Neovim-Config.git"
 if [ ! -d "$HOME/.config/nvim/.git" ]; then
   mkdir -p "$HOME/.config"
-  git clone git@github.com:maton369/Neovim-Config.git "$HOME/.config/nvim"
-  echo "Config cloned"
+  # SSH 鍵が登録済みなら SSH (push もそのまま使える)、 未登録なら HTTPS で fallback
+  if git clone "$REPO_SSH" "$HOME/.config/nvim" 2>/dev/null; then
+    echo "Config cloned via SSH"
+  else
+    echo "  SSH unavailable, falling back to HTTPS..."
+    git clone "$REPO_HTTPS" "$HOME/.config/nvim"
+    echo "Config cloned via HTTPS (push したい場合は 'git remote set-url origin $REPO_SSH' で SSH に切り替え)"
+  fi
 else
   cd "$HOME/.config/nvim" && git pull
   echo "Config updated"

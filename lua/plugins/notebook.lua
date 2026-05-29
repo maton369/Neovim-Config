@@ -1,6 +1,24 @@
 local lang = require("lang_detect")
 
--- カーソル位置のセルの出力画像をクリップボードにコピー（macOS）
+-- 画像ファイルをクリップボードにコピー (OS 別 fallback)。
+-- macOS: osascript, Linux/Wayland: wl-copy, Linux/X11: xclip。
+local function copy_image_to_clipboard(path)
+  local cmd
+  if vim.fn.has("mac") == 1 then
+    cmd = "osascript -e 'set the clipboard to (read (POSIX file \""
+      .. path .. "\") as «class PNGf»)'"
+  elseif vim.fn.executable("wl-copy") == 1 then
+    cmd = "wl-copy --type image/png < " .. vim.fn.shellescape(path)
+  elseif vim.fn.executable("xclip") == 1 then
+    cmd = "xclip -selection clipboard -t image/png -i " .. vim.fn.shellescape(path)
+  else
+    return false, "no clipboard tool (need osascript / wl-copy / xclip)"
+  end
+  vim.fn.system(cmd)
+  return vim.v.shell_error == 0, nil
+end
+
+-- カーソル位置のセルの出力画像をクリップボードにコピー
 local function copy_cell_image()
   local ok, image_api = pcall(require, "image")
   if not ok then
@@ -31,11 +49,11 @@ local function copy_cell_image()
     return
   end
   local path = best.original_path
-  vim.fn.system("osascript -e 'set the clipboard to (read (POSIX file \"" .. path .. "\") as «class PNGf»)'")
-  if vim.v.shell_error == 0 then
+  local ok, err = copy_image_to_clipboard(path)
+  if ok then
     vim.notify("Copied: " .. vim.fn.fnamemodify(path, ":t"), vim.log.levels.INFO)
   else
-    vim.notify("Failed to copy image", vim.log.levels.ERROR)
+    vim.notify("Failed to copy image" .. (err and (": " .. err) or ""), vim.log.levels.ERROR)
   end
 end
 

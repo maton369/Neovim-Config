@@ -2,28 +2,31 @@ local map = vim.keymap.set
 
 -- ウィンドウ移動・リサイズは smart-splits.nvim に委譲（tmux/kitty 連携対応）
 
--- フォントサイズ変更（iTerm2 AppleScript）
-local function change_iterm_font_size(delta)
-  vim.fn.system(string.format([[osascript -e '
-    tell application "iTerm2"
-      tell current session of current window
-        set curFont to name of profile
-      end tell
-      tell profile curFont
-        set normalFont to normal font
-        -- フォント名からサイズを取得して変更
-      end tell
-    end tell' 2>/dev/null]], delta))
-  -- 確実な方法: キーストロークをシミュレート
-  if delta > 0 then
-    vim.fn.system([[osascript -e 'tell application "System Events" to keystroke "+" using command down']])
-  else
-    vim.fn.system([[osascript -e 'tell application "System Events" to keystroke "-" using command down']])
+-- フォントサイズ変更 — iTerm2 (macOS) 専用。 Linux 端末は端末側のショートカット
+-- (kitty/alacritty/foot/wezterm 等は Ctrl-= / Ctrl--) を使う想定なので登録しない。
+if vim.fn.has("mac") == 1 then
+  local function change_iterm_font_size(delta)
+    vim.fn.system(string.format([[osascript -e '
+      tell application "iTerm2"
+        tell current session of current window
+          set curFont to name of profile
+        end tell
+        tell profile curFont
+          set normalFont to normal font
+          -- フォント名からサイズを取得して変更
+        end tell
+      end tell' 2>/dev/null]], delta))
+    -- 確実な方法: キーストロークをシミュレート
+    if delta > 0 then
+      vim.fn.system([[osascript -e 'tell application "System Events" to keystroke "+" using command down']])
+    else
+      vim.fn.system([[osascript -e 'tell application "System Events" to keystroke "-" using command down']])
+    end
   end
-end
 
-map("n", "<leader>=", function() change_iterm_font_size(1) end, { desc = "Font size +" })
-map("n", "<leader>-", function() change_iterm_font_size(-1) end, { desc = "Font size -" })
+  map("n", "<leader>=", function() change_iterm_font_size(1) end, { desc = "Font size +" })
+  map("n", "<leader>-", function() change_iterm_font_size(-1) end, { desc = "Font size -" })
+end
 
 -- 行移動（ビジュアルモード）
 map("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move line down" })
