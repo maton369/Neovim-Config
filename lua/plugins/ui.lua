@@ -281,6 +281,25 @@ return {
           hide_gitignored = false,
         },
       },
+      -- Git タブ (Neotree git_status) で Enter / o したら、 そのファイルだけを
+      -- diffview に投げて差分を別タブで開く。 通常のファイルオープン (= full file
+      -- 表示) ではなく、 VSCode の SCM ペインのように差分中心の view にしたい
+      -- 場合の挙動。 untracked / deleted も DiffviewOpen が片側 empty で処理。
+      git_status = {
+        window = {
+          mappings = {
+            ["<cr>"] = "diff_open",
+            ["o"]    = "diff_open",
+          },
+        },
+        commands = {
+          diff_open = function(state)
+            local node = state.tree:get_node()
+            if not node or node.type ~= "file" then return end
+            vim.cmd("DiffviewOpen -- " .. vim.fn.fnameescape(node.path))
+          end,
+        },
+      },
       default_component_configs = {
         -- VSCode 方式: シンボルアイコンは出さず、 ファイル名の色だけで git status を
         -- 表現する。 (元設定の ✚ ✖ 󰁕 󰄱 等はファイル名の右に出てコード領域に
