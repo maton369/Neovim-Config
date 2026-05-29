@@ -39,6 +39,10 @@ require("lazy").setup("plugins")
 vim.api.nvim_create_autocmd("VimEnter", {
   once = true,
   callback = function()
+    -- headless (UI なし) 起動ではレイアウト構築は意味が無く、 むしろ
+    -- terminal claude / belowright split が予期せぬエラーになるので skip。
+    -- setup.sh の `nvim --headless +Lazy! sync +UpdateRemotePlugins +qa` 用。
+    if #vim.api.nvim_list_uis() == 0 then return end
     vim.defer_fn(function()
       -- 0. Lazy install UI など floating window が出ているうちはレイアウト構築を skip。
       --    (only/split が floating window しか残らない / 衝突するとエラーになる)

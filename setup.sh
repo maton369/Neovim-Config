@@ -184,6 +184,19 @@ WRAPPER
 chmod +x "$HOME/.local/bin/claude"
 echo "Claude wrapper at $HOME/.local/bin/claude"
 
+# -----------------------------------------------------------
+# 9. Bootstrap nvim plugins headlessly
+#    - `Lazy! sync` で 全 plugin install + build hook 実行
+#    - `UpdateRemotePlugins` で molten-nvim 等 Python rplugin を rplugin.vim に登録。
+#    初回 launch 時に lazy 経由で実行される build hook が venv 未準備で空振りした
+#    場合 :MoltenInit などが E492 になるので、 venv 完成後に明示的に再走させる。
+# -----------------------------------------------------------
+if command -v nvim &>/dev/null; then
+  echo "Bootstrapping plugins (Lazy sync + UpdateRemotePlugins)..."
+  nvim --headless "+Lazy! sync" +qa 2>&1 | tail -3 || true
+  nvim --headless "+UpdateRemotePlugins" +qa 2>&1 | tail -3 || true
+fi
+
 echo ""
 echo "=== Setup complete! ==="
 echo "Run 'nvim' to start. Plugins will install automatically on first launch."
