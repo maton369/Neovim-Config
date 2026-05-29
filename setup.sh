@@ -208,6 +208,10 @@ fi
 # -----------------------------------------------------------
 echo "[8/8] Installing claude wrapper..."
 mkdir -p "$HOME/.local/bin"
+# ~/.local/bin/claude が公式 installer / npm install の symlink だと、
+# `cat >` がリンクを辿って **本体ファイル**を wrapper script で上書きしてしまう
+# (= claude が起動不能になる)。 既存 symlink / 旧 wrapper は unlink してから書く。
+rm -f "$HOME/.local/bin/claude"
 cat > "$HOME/.local/bin/claude" <<'WRAPPER'
 #!/usr/bin/env bash
 # nvim の :terminal claude (non-interactive shell) で claude が見つからない問題の回避。
