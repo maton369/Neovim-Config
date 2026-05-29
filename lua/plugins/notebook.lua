@@ -105,7 +105,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
       " ␣my Copy",
       "%#Comment#│%*",
       "%#Title# Find %*",
-      " /:Buf n/N:↑↓",
+      " /:Buf n/N:↑↓ Esc:Clr",
       " ␣fg:Grep",
       " ␣ff:File",
     }, " ")

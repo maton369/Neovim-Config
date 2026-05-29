@@ -16,20 +16,21 @@ return {
         end
         local ft = vim.bo.filetype
         if ft == "python" and vim.api.nvim_buf_get_name(0):match("%.ipynb$") then
-          return "␣mi:Init ␣mx:Run ␣ms:Show ]c[c:Cell /:Find ␣fg:Grep ␣ff:File ␣?:Help"
+          return "␣mi:Init ␣mx:Run ␣ms:Show ]c[c:Cell /:Find Esc:Clr ␣fg:Grep ␣?:Help"
         elseif ft == "toggleterm" then
           return "C-\\:Toggle C-h/k:Win ␣tt:Term ␣?:Help"
         elseif ft == "neo-tree" then
           return "/:Fnd C-x:Clr ⌫↑"
         elseif ft == "go" then
-          return "␣cgt:Test ␣cgr:Run ␣cge:IfErr /:Find ␣fg:Grep ␣?:Help"
+          return "␣cgt:Test ␣cgr:Run ␣cge:IfErr /:Find Esc:Clr ␣fg:Grep ␣?:Help"
         elseif ft == "csv" or ft == "tsv" then
-          return "␣cv:CSV View /:Find ␣?:Help"
+          return "␣cv:CSV View /:Find Esc:Clr ␣?:Help"
         elseif ft == "markdown" then
-          return "␣mp:Preview /:Find ␣fg:Grep ␣?:Help"
+          return "␣mp:Preview /:Find Esc:Clr ␣fg:Grep ␣?:Help"
         end
-        -- 全 ft の fallback。 検索系 (/:buf 内, ␣ff:filename, ␣fg:grep) を必ず含める。
-        return "C-h/j/k/l:Win S-h/l:Buf /:Find ␣ff:Files ␣fg:Grep ␣tt:Term ␣?:Help"
+        -- 全 ft の fallback。 検索系 (/:buf 内, Esc:ハイライト解除, ␣ff:filename,
+        -- ␣fg:grep) を必ず含める。 Esc は keymaps.lua で :nohlsearch にバインド済み。
+        return "C-h/j/k/l:Win S-h/l:Buf /:Find Esc:Clr ␣ff:Files ␣fg:Grep ␣?:Help"
       end
       local hints_component = { hints, color = { fg = "#7f849c" } }
       -- neo-tree pane の statusline ヒント。 pane 幅 (window.width) に収まる長さに
