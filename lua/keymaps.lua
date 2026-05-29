@@ -35,6 +35,13 @@ map("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move line up" })
 -- 検索ハイライト解除
 map("n", "<Esc>", "<cmd>nohlsearch<cr>", { desc = "Clear search highlight" })
 
+-- ターミナルモード (`:terminal` / `terminal claude` 等) を抜ける。
+-- nvim 標準は <C-\><C-n> で押しづらいので alias を 2 つ用意:
+--  - <C-\><C-n> (標準、 残しておく)
+--  - <Esc><Esc> ← ダブル Esc。 シングル Esc は claude TUI の cancel 等に届くので
+--    競合せず、 すばやく Esc 2 連打で nvim NORMAL に戻れる。
+map("t", "<Esc><Esc>", [[<C-\><C-n>]], { desc = "Terminal: exit to NORMAL" })
+
 -- バッファ保存
 map("n", "<leader>w", "<cmd>w<cr>", { desc = "Save" })
 map("n", "<leader>q", "<cmd>q<cr>", { desc = "Quit" })
