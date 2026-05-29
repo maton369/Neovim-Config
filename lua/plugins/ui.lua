@@ -303,9 +303,8 @@ return {
         },
       },
       -- Git タブ (Neotree git_status) で Enter / o したら、 そのファイルだけを
-      -- diffview に投げて差分を別タブで開く。 通常のファイルオープン (= full file
-      -- 表示) ではなく、 VSCode の SCM ペインのように差分中心の view にしたい
-      -- 場合の挙動。 untracked / deleted も DiffviewOpen が片側 empty で処理。
+      -- diffview に投げて差分を別タブで開く。 ディレクトリ上では通常通り
+      -- 展開/折りたたみ。 untracked / deleted も DiffviewOpen が片側 empty で処理。
       git_status = {
         window = {
           mappings = {
@@ -316,8 +315,15 @@ return {
         commands = {
           diff_open = function(state)
             local node = state.tree:get_node()
-            if not node or node.type ~= "file" then return end
-            vim.cmd("DiffviewOpen -- " .. vim.fn.fnameescape(node.path))
+            if not node then return end
+            if node.type == "directory" then
+              -- 通常の Neo-tree 挙動: 展開/折りたたみトグル
+              require("neo-tree.sources.common.commands").toggle_node(state)
+              return
+            end
+            if node.type == "file" then
+              vim.cmd("DiffviewOpen -- " .. vim.fn.fnameescape(node.path))
+            end
           end,
         },
       },
