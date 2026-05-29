@@ -282,21 +282,51 @@ return {
         },
       },
       default_component_configs = {
+        -- VSCode 方式: シンボルアイコンは出さず、 ファイル名の色だけで git status を
+        -- 表現する。 (元設定の ✚ ✖ 󰁕 󰄱 等はファイル名の右に出てコード領域に
+        -- 食い込んでいたため)。 色は下の set_neotree_git_hl() で上書き。
         git_status = {
           symbols = {
-            added     = "✚",
+            added     = "",
             modified  = "",
-            deleted   = "✖",
-            renamed   = "󰁕",
+            deleted   = "",
+            renamed   = "",
             untracked = "",
             ignored   = "",
-            unstaged  = "󰄱",
+            unstaged  = "",
             staged    = "",
             conflict  = "",
           },
         },
+        name = {
+          use_git_status_colors = true,
+        },
       },
     },
+    config = function(_, opts)
+      require("neo-tree").setup(opts)
+
+      -- VSCode (workbench.colorCustomizations の gitDecoration.*) の色に合わせる:
+      --   modifiedResourceForeground: #E2C08D (黄褐)
+      --   addedResourceForeground:    #81B88B (緑)
+      --   deletedResourceForeground:  #C74E39 (赤)
+      --   untrackedResourceForeground: #73C991 (明緑)
+      --   ignoredResourceForeground:  #8C8C8C (灰)
+      --   conflictingResourceForeground: #E4676B (赤寄り)
+      local function set_neotree_git_hl()
+        vim.api.nvim_set_hl(0, "NeoTreeGitModified",  { fg = "#e2c08d" })
+        vim.api.nvim_set_hl(0, "NeoTreeGitAdded",     { fg = "#81b88b" })
+        vim.api.nvim_set_hl(0, "NeoTreeGitDeleted",   { fg = "#c74e39" })
+        vim.api.nvim_set_hl(0, "NeoTreeGitRenamed",   { fg = "#e2c08d" })
+        vim.api.nvim_set_hl(0, "NeoTreeGitUntracked", { fg = "#73c991" })
+        vim.api.nvim_set_hl(0, "NeoTreeGitIgnored",   { fg = "#8c8c8c" })
+        vim.api.nvim_set_hl(0, "NeoTreeGitConflict",  { fg = "#e4676b" })
+        vim.api.nvim_set_hl(0, "NeoTreeGitStaged",    { fg = "#81b88b" })
+        vim.api.nvim_set_hl(0, "NeoTreeGitUnstaged",  { fg = "#e2c08d" })
+      end
+      set_neotree_git_hl()
+      vim.api.nvim_create_autocmd("ColorScheme", { callback = set_neotree_git_hl })
+    end,
     -- 起動時の Neotree 表示は init.lua の VimEnter layout autocmd が担当する
     -- (ここで重ねて vim.schedule すると window 1000 への戻り先参照が遅延 callback で
     --  発火する頃に init.lua の `only` でその window が消えていて Invalid window id
