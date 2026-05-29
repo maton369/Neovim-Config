@@ -181,6 +181,19 @@ return {
       vim.g.molten_image_provider = "image.nvim"
       -- Python パス（venv内の pynvim/jupyter を使用）
       vim.g.python3_host_prog = vim.fn.expand("~/.config/nvim/venv/bin/python3")
+
+      -- molten のセル出力 (virtual text / virtual lines) は default で Comment
+      -- にリンクされて薄いイタリックで読みづらい。 Normal の前景色寄りの
+      -- 明るい色に上書きして可読性を上げる。 ColorScheme 切り替えにも追従。
+      local function set_molten_hl()
+        vim.api.nvim_set_hl(0, "MoltenVirtualText", { fg = "#dcdfe4", italic = false })
+        vim.api.nvim_set_hl(0, "MoltenOutputBorder", { fg = "#7aa2f7" })
+        vim.api.nvim_set_hl(0, "MoltenOutputBorderSuccess", { fg = "#9ece6a" })
+        vim.api.nvim_set_hl(0, "MoltenOutputBorderFail", { fg = "#f7768e" })
+        vim.api.nvim_set_hl(0, "MoltenOutputWin", { link = "Normal" })
+      end
+      set_molten_hl()
+      vim.api.nvim_create_autocmd("ColorScheme", { callback = set_molten_hl })
     end,
     keys = {
       { "<leader>mi", "<cmd>MoltenInit<cr>", desc = "Molten: Init kernel" },
