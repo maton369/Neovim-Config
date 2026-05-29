@@ -15,7 +15,7 @@ return {
         elseif ft == "toggleterm" then
           return "C-\\:Toggle C-h/k:Win ␣tt:Term ␣?:Help"
         elseif ft == "neo-tree" then
-          return "< >:Tab  .:Root↓  ⌫:Root↑  ?:Help"
+          return "<>:Tab .↓ ⌫↑ ?:H"
         elseif ft == "go" then
           return "␣cgt:Test ␣cgr:Run ␣cge:IfErr ␣?:Help"
         elseif ft == "csv" or ft == "tsv" then
@@ -26,10 +26,10 @@ return {
         return "C-h/j/k/l:Win S-h/l:Buf ␣fb:Bufs ␣ff:Files ␣fg:Grep ␣tt:Term ␣?:Help"
       end
       local hints_component = { hints, color = { fg = "#7f849c" } }
-      -- neo-tree pane の statusline ヒント。 < > はソース (Files/Git/Bufs) 切替、
-      -- . はカーソル位置のディレクトリを root に設定 (= zoom in)、 ⌫ は root を
-      -- 一階上に戻す (= zoom out)。 ルート移動キーを忘れて迷子になるのを防ぐ。
-      local neotree_hint = "< >:Tab  .:Root↓  ⌫:Root↑  ?:Help"
+      -- neo-tree pane の statusline ヒント。 pane 幅 (window.width) に収まる長さに
+      -- 切り詰める必要があるため記号で圧縮。 < > はソース切替、 .↓ はカーソル位置
+      -- を root に (zoom in)、 ⌫↑ は root を親に (zoom out)、 ? は help。
+      local neotree_hint = "<>:Tab .↓ ⌫↑ ?:H"
       local neotree_ext = {
         sections = {
           lualine_a = { function() return "Explorer" end },
@@ -271,7 +271,9 @@ return {
         },
       },
       window = {
-        width = 25,
+        -- statusline のヒント (<>:Tab .↓ ⌫↑ ?:H) が "Explorer" ラベルと並んで
+        -- 入る最低幅。 25 だと左側が truncate されてキー名が読めなくなる。
+        width = 28,
       },
       filesystem = {
         filtered_items = {
