@@ -9,6 +9,11 @@ return {
     dependencies = { "nvim-tree/nvim-web-devicons" },
     opts = function()
       local function hints()
+        -- diffview のタブ内 (中央/右の diff pane 含む) はファイル種別に関わらず
+        -- 「q で閉じる」 ヒントを優先。 戻り方が分からず迷子になる事故を防ぐ。
+        if vim.t.diffview_view_initialized then
+          return "q:Close diff  gT/gt:Tab  ␣gq:Close"
+        end
         local ft = vim.bo.filetype
         if ft == "python" and vim.api.nvim_buf_get_name(0):match("%.ipynb$") then
           return "␣mi:Init ␣mx:Run ␣ma:All ]c[c:Move ␣my:Copy ␣?:Help"
@@ -52,6 +57,21 @@ return {
         },
         filetypes = { "toggleterm" },
       }
+      -- diffview のファイルパネル / ファイル履歴パネル用 (DiffviewFiles /
+      -- DiffviewFileHistory)。 上の hints() 関数は filetype が markdown 等の
+      -- 通常型を返すケースで diff 本体 pane を救済するので、 こちらは panel 専用。
+      local diffview_hint = "q:Close  j/k:↑↓  <cr>:Open file"
+      local diffview_ext = {
+        sections = {
+          lualine_a = { function() return "Diffview" end },
+          lualine_c = { { function() return diffview_hint end, color = { fg = "#7f849c" } } },
+        },
+        inactive_sections = {
+          lualine_a = { function() return "Diffview" end },
+          lualine_c = { { function() return diffview_hint end, color = { fg = "#7f849c" } } },
+        },
+        filetypes = { "DiffviewFiles", "DiffviewFileHistory" },
+      }
       return {
         sections = {
           lualine_c = { "filename", hints_component },
@@ -59,7 +79,7 @@ return {
         inactive_sections = {
           lualine_c = { "filename", hints_component },
         },
-        extensions = { neotree_ext, toggleterm_ext },
+        extensions = { neotree_ext, toggleterm_ext, diffview_ext },
       }
     end,
   },
