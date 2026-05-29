@@ -188,7 +188,13 @@ return {
     build = ":UpdateRemotePlugins",
     lazy = false,
     init = function()
-      vim.g.molten_output_win_max_height = 40
+      -- VSCode notebook 並みの大きさで画像 / セル出力を表示するための拡張。
+      -- 旧設定 `molten_output_win_max_height = 40` だと matplotlib 標準の
+      -- figsize=(6,3) (= 600x300 px ≈ 70 col × 35 行) でも float が 40 行に
+      -- 切られて画像が縮小されていた。 高さ・幅とも nvim window 一杯まで使えるよう
+      -- 上限を大きく取る (molten のデフォルト 999999 と同等)。
+      vim.g.molten_output_win_max_height = 999999
+      vim.g.molten_output_win_max_width = 999999
       vim.g.molten_auto_open_output = false
       vim.g.molten_virt_text_output = true
       vim.g.molten_virt_lines_off_by_1 = true
