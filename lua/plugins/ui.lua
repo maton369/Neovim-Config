@@ -302,9 +302,11 @@ return {
           hide_gitignored = false,
         },
       },
-      -- Git タブ (Neotree git_status) で Enter / o したら、 そのファイルだけを
-      -- diffview に投げて差分を別タブで開く。 ディレクトリ上では通常通り
-      -- 展開/折りたたみ。 untracked / deleted も DiffviewOpen が片側 empty で処理。
+      -- Git タブ (Neotree git_status) で Enter / o したら、 そのパスを path filter
+      -- として diffview に投げる。 git_status は flat list なので展開する子要素を
+      -- 持たない (toggle_node が空振りする) ためツリー展開はしない代わりに、
+      -- ディレクトリ / submodule の場合はその配下の変更ファイル一覧を diffview
+      -- 左パネルに並べて差分を見比べられるようにする。
       git_status = {
         window = {
           mappings = {
@@ -316,14 +318,7 @@ return {
           diff_open = function(state)
             local node = state.tree:get_node()
             if not node then return end
-            if node.type == "directory" then
-              -- 通常の Neo-tree 挙動: 展開/折りたたみトグル
-              require("neo-tree.sources.common.commands").toggle_node(state)
-              return
-            end
-            if node.type == "file" then
-              vim.cmd("DiffviewOpen -- " .. vim.fn.fnameescape(node.path))
-            end
+            vim.cmd("DiffviewOpen -- " .. vim.fn.fnameescape(node.path))
           end,
         },
       },
