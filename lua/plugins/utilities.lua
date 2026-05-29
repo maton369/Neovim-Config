@@ -123,6 +123,17 @@ return {
         offsets = {
           { filetype = "neo-tree", text = "Explorer", highlight = "Directory" },
         },
+        -- バッファ移動キーヒントをタブラインの右側に常時表示。
+        -- :bp / :bn と等価の S-h / S-l がデフォルト keymap (keys 参照)。
+        custom_areas = {
+          right = function()
+            return {
+              { text = " :bp ⇧h ", fg = "#7aa2f7" },
+              { text = " :bn ⇧l ", fg = "#7aa2f7" },
+              { text = " :bd ␣bd ", fg = "#f7768e" },
+            }
+          end,
+        },
       },
     },
   },
