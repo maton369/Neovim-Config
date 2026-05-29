@@ -20,7 +20,7 @@ return {
         elseif ft == "toggleterm" then
           return "C-\\:Toggle C-h/k:Win ␣tt:Term ␣?:Help"
         elseif ft == "neo-tree" then
-          return "<>:Tab .↓ ⌫↑ ?:H"
+          return "/:Fnd C-x:Clr ⌫↑"
         elseif ft == "go" then
           return "␣cgt:Test ␣cgr:Run ␣cge:IfErr ␣?:Help"
         elseif ft == "csv" or ft == "tsv" then
@@ -32,9 +32,10 @@ return {
       end
       local hints_component = { hints, color = { fg = "#7f849c" } }
       -- neo-tree pane の statusline ヒント。 pane 幅 (window.width) に収まる長さに
-      -- 切り詰める必要があるため記号で圧縮。 < > はソース切替、 .↓ はカーソル位置
-      -- を root に (zoom in)、 ⌫↑ は root を親に (zoom out)、 ? は help。
-      local neotree_hint = "<>:Tab .↓ ⌫↑ ?:H"
+      -- 切り詰める必要があるため記号で圧縮。 / は fuzzy find (filter)、 C-x は
+      -- filter クリア (find モードからの脱出)、 ⌫↑ は root を一階上に戻す。
+      -- < > のソース切替は winbar に Files|Git|Bufs タブが見えるので省略。
+      local neotree_hint = "/:Fnd C-x:Clr ⌫↑"
       local neotree_ext = {
         sections = {
           lualine_a = { function() return "Explorer" end },
