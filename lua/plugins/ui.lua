@@ -15,7 +15,7 @@ return {
         elseif ft == "toggleterm" then
           return "C-\\:Toggle C-h/k:Win ␣tt:Term ␣?:Help"
         elseif ft == "neo-tree" then
-          return "C-l:Editor ␣e:Toggle ␣gs:Git ␣?:Help"
+          return "< >:Tab  .:Root↓  ⌫:Root↑  ?:Help"
         elseif ft == "go" then
           return "␣cgt:Test ␣cgr:Run ␣cge:IfErr ␣?:Help"
         elseif ft == "csv" or ft == "tsv" then
@@ -26,14 +26,18 @@ return {
         return "C-h/j/k/l:Win S-h/l:Buf ␣fb:Bufs ␣ff:Files ␣fg:Grep ␣tt:Term ␣?:Help"
       end
       local hints_component = { hints, color = { fg = "#7f849c" } }
+      -- neo-tree pane の statusline ヒント。 < > はソース (Files/Git/Bufs) 切替、
+      -- . はカーソル位置のディレクトリを root に設定 (= zoom in)、 ⌫ は root を
+      -- 一階上に戻す (= zoom out)。 ルート移動キーを忘れて迷子になるのを防ぐ。
+      local neotree_hint = "< >:Tab  .:Root↓  ⌫:Root↑  ?:Help"
       local neotree_ext = {
         sections = {
           lualine_a = { function() return "Explorer" end },
-          lualine_c = { { function() return "< >:Tab ?:Help" end, color = { fg = "#7f849c" } } },
+          lualine_c = { { function() return neotree_hint end, color = { fg = "#7f849c" } } },
         },
         inactive_sections = {
           lualine_a = { function() return "Explorer" end },
-          lualine_c = { { function() return "< >:Tab ?:Help" end, color = { fg = "#7f849c" } } },
+          lualine_c = { { function() return neotree_hint end, color = { fg = "#7f849c" } } },
         },
         filetypes = { "neo-tree" },
       }
