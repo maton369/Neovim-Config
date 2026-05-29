@@ -82,8 +82,9 @@ vim.api.nvim_create_autocmd("VimEnter", {
   end,
 })
 
--- Claude ターミナルにフォーカス
+-- Claude ターミナルにフォーカス (既存があれば)、 無ければ起動時と同じ右ペインで開く
 vim.keymap.set("n", "<leader>tc", function()
+  -- 1. 既存の claude ターミナルを探す → フォーカス
   for _, win in ipairs(vim.api.nvim_list_wins()) do
     local buf = vim.api.nvim_win_get_buf(win)
     if vim.bo[buf].buftype == "terminal" and vim.api.nvim_buf_get_name(buf):find("claude") then
@@ -92,5 +93,9 @@ vim.keymap.set("n", "<leader>tc", function()
       return
     end
   end
-  vim.notify("Claude terminal not found", vim.log.levels.WARN)
-end, { desc = "Focus Claude terminal" })
+  -- 2. 無ければ右側に vsplit + terminal claude (init.lua VimEnter と同じレイアウト)
+  local width = math.floor(vim.o.columns * 0.4)
+  vim.cmd("botright vsplit | terminal claude")
+  vim.cmd("vertical resize " .. width)
+  vim.cmd("setlocal nobuflisted")
+end, { desc = "Focus/Open Claude terminal" })
