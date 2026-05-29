@@ -298,6 +298,17 @@ return {
             conflict  = "",
           },
         },
+        -- LSP diagnostic の Error/Warn 等を示す E / W / I / H 文字も同様に消す。
+        -- VSCode はエクスプローラでファイル名に色を付けて伝えるので、 そちらに揃える
+        -- (色は NeoTreeFileNameOpened など別系統で出る)。
+        diagnostics = {
+          symbols = {
+            hint  = "",
+            info  = "",
+            warn  = "",
+            error = "",
+          },
+        },
         name = {
           use_git_status_colors = true,
         },
