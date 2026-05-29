@@ -1,7 +1,28 @@
 #!/bin/bash
 # Neovim development environment setup script
 # Tested on Ubuntu 22.04+
+#
+# Usage: setup.sh [--conda-kernels]
+#   --conda-kernels  ~/{miniforge3,anaconda3,miniconda3}/envs/* で ipykernel が
+#                    入っている conda env を Jupyter kernel として登録する
+#                    (:MoltenInit のピッカーに並ぶ)。 デフォルトでは行わない。
+
 set -euo pipefail
+
+INSTALL_CONDA_KERNELS=false
+for arg in "$@"; do
+  case "$arg" in
+    --conda-kernels) INSTALL_CONDA_KERNELS=true ;;
+    -h|--help)
+      sed -n '/^# Usage:/,/^$/p' "$0" | sed 's/^# \{0,1\}//'
+      exit 0
+      ;;
+    *)
+      echo "unknown option: $arg" >&2
+      exit 2
+      ;;
+  esac
+done
 
 echo "=== Neovim Environment Setup ==="
 
@@ -138,6 +159,31 @@ ln -sf "$VENV_DIR/bin/ruff" "$HOME/.local/bin/ruff"
 echo "Notebook venv ready at $VENV_DIR"
 
 # -----------------------------------------------------------
+# 7b. Register conda env Jupyter kernels (opt-in: --conda-kernels)
+#     ~/{miniforge3,anaconda3,miniconda3}/envs/*/ で ipykernel が入っている env を
+#     `python -m ipykernel install --user --name <env>` で Jupyter kernel として
+#     登録する。 これで :MoltenInit のピッカーに conda env が並ぶ。
+#     idempotent — 既に登録済みでも上書きされるだけで害は無い。
+# -----------------------------------------------------------
+if [ "$INSTALL_CONDA_KERNELS" = "true" ]; then
+  echo "Registering conda env Jupyter kernels..."
+  for conda_root in "$HOME/miniforge3" "$HOME/anaconda3" "$HOME/miniconda3"; do
+    [ -d "$conda_root/envs" ] || continue
+    for env_dir in "$conda_root"/envs/*/; do
+      [ -d "$env_dir" ] || continue
+      env_name="$(basename "$env_dir")"
+      env_python="${env_dir}bin/python"
+      [ -x "$env_python" ] || continue
+      if "$env_python" -c "import ipykernel" &>/dev/null; then
+        "$env_python" -m ipykernel install --user \
+          --name "$env_name" --display-name "Python ($env_name)" 2>/dev/null && \
+          echo "  registered: $env_name"
+      fi
+    done
+  done
+fi
+
+# -----------------------------------------------------------
 # 8. Claude Code wrapper
 #    nvim init.lua の VimEnter layout は右ペインで `terminal claude` を起動するが、
 #    nvim の `:terminal cmd` は non-interactive shell で cmd を実行するため
@@ -203,3 +249,7 @@ echo "Run 'nvim' to start. Plugins will install automatically on first launch."
 echo "Note: claude (Claude Code CLI) 本体はこの script では入れない。"
 echo "      'npm install -g @anthropic-ai/claude-code' を別途実行すれば、"
 echo "      §8 のラッパー経由で nvim の右ペイン (terminal claude) が動く。"
+if [ "$INSTALL_CONDA_KERNELS" != "true" ]; then
+  echo "Note: conda env を :MoltenInit のピッカーで使いたい場合は"
+  echo "      './setup.sh --conda-kernels' で再実行 (ipykernel 入りの conda env を登録)。"
+fi
