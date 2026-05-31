@@ -21,6 +21,15 @@
 
 ## セットアップ
 
+### macOS (Homebrew)
+
+```bash
+git clone git@github.com:maton369/Neovim-Config.git ~/.config/nvim
+~/.config/nvim/setup.sh
+```
+
+> [Homebrew](https://brew.sh) が必要です。未インストールの場合は先に `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` で導入してください。
+
 ### Ubuntu / Linux
 
 ```bash
@@ -156,7 +165,7 @@ nvim
 │       ├── tmux.lua         # tmux 連携（smart-splits）
 │       ├── utilities.lua    # Spectre, Harpoon, Undotree など
 │       └── whichkey.lua     # キーバインドヒントポップアップ
-├── setup.sh                 # Linux 向けセットアップスクリプト
+├── setup.sh                 # macOS / Linux 向けセットアップスクリプト
 └── setup.ps1                # Windows 向けセットアップスクリプト
 ```
 

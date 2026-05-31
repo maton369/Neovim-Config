@@ -1,6 +1,6 @@
 #!/bin/bash
 # Neovim development environment setup script
-# Tested on Ubuntu 22.04+
+# Supported: macOS (Homebrew) / Ubuntu 22.04+ (apt)
 #
 # Usage: setup.sh [OPTIONS]
 #   --research       Jupyter/ノートブック環境を含める (luarocks, magick, jupytext,
@@ -28,6 +28,18 @@ for arg in "$@"; do
   esac
 done
 
+OS="$(uname -s)"
+if [ "$OS" = "Darwin" ]; then
+  PLATFORM="mac"
+  echo "Detected: macOS"
+elif [ -f /etc/os-release ]; then
+  PLATFORM="linux"
+  echo "Detected: Linux"
+else
+  echo "Error: unsupported OS" >&2
+  exit 1
+fi
+
 echo "=== Neovim Environment Setup ==="
 if $RESEARCH; then
   echo "(--research mode: including Jupyter/notebook environment)"
@@ -36,36 +48,48 @@ fi
 # -----------------------------------------------------------
 # 1. System packages
 # -----------------------------------------------------------
-# NOTE: golang-go は Ubuntu 22.04 で Go 1.18 のため gopls v0.22.0 を build できない。
-# Go は §5 で公式 tarball から 1.23+ を入れるのでここでは入れない。
 echo "[1/8] Installing system packages..."
-sudo apt update
-sudo apt install -y \
-  git curl wget unzip \
-  build-essential cmake \
-  ripgrep fd-find \
-  python3 python3-pip python3-venv \
-  xclip wl-clipboard
+if [ "$PLATFORM" = "mac" ]; then
+  if ! command -v brew &>/dev/null; then
+    echo "Error: Homebrew is required on macOS. Install from https://brew.sh" >&2
+    exit 1
+  fi
+  brew install git curl wget cmake ripgrep fd python3 yazi
 
-if $RESEARCH; then
-  sudo apt install -y \
-    luarocks lua5.1 liblua5.1-0-dev libmagickwand-dev
-fi
-
-# fd-find is installed as 'fdfind' on Ubuntu; create symlink
-if command -v fdfind &>/dev/null && ! command -v fd &>/dev/null; then
-  sudo ln -sf "$(which fdfind)" /usr/local/bin/fd
-fi
-
-# yazi (file manager for yazi.nvim)
-if ! command -v yazi &>/dev/null; then
-  echo "  → Installing yazi..."
-  curl -Lo /tmp/yazi.zip "https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unknown-linux-gnu.zip"
-  unzip -o /tmp/yazi.zip -d /tmp
-  sudo install /tmp/yazi-x86_64-unknown-linux-gnu/yazi /usr/local/bin
-  rm -rf /tmp/yazi.zip /tmp/yazi-x86_64-unknown-linux-gnu
+  if $RESEARCH; then
+    brew install luarocks imagemagick
+  fi
 else
-  echo "  ✓ yazi (already installed)"
+  # NOTE: golang-go は Ubuntu 22.04 で Go 1.18 のため gopls v0.22.0 を build できない。
+  # Go は §5 で公式 tarball から 1.23+ を入れるのでここでは入れない。
+  sudo apt update
+  sudo apt install -y \
+    git curl wget unzip \
+    build-essential cmake \
+    ripgrep fd-find \
+    python3 python3-pip python3-venv \
+    xclip wl-clipboard
+
+  if $RESEARCH; then
+    sudo apt install -y \
+      luarocks lua5.1 liblua5.1-0-dev libmagickwand-dev
+  fi
+
+  # fd-find is installed as 'fdfind' on Ubuntu; create symlink
+  if command -v fdfind &>/dev/null && ! command -v fd &>/dev/null; then
+    sudo ln -sf "$(which fdfind)" /usr/local/bin/fd
+  fi
+
+  # yazi (file manager for yazi.nvim)
+  if ! command -v yazi &>/dev/null; then
+    echo "  → Installing yazi..."
+    curl -Lo /tmp/yazi.zip "https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unknown-linux-gnu.zip"
+    unzip -o /tmp/yazi.zip -d /tmp
+    sudo install /tmp/yazi-x86_64-unknown-linux-gnu/yazi /usr/local/bin
+    rm -rf /tmp/yazi.zip /tmp/yazi-x86_64-unknown-linux-gnu
+  else
+    echo "  ✓ yazi (already installed)"
+  fi
 fi
 
 # image.nvim (kitty graphics backend) needs lua-magick. Build it against
@@ -81,26 +105,36 @@ fi
 # 2. Neovim (latest stable)
 # -----------------------------------------------------------
 echo "[2/8] Installing Neovim..."
-if ! nvim --version 2>/dev/null | grep -q 'NVIM v0\.\(1[0-9]\|[2-9][0-9]\)'; then
-  curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
-  sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
-  sudo ln -sf /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/nvim
-  rm nvim-linux-x86_64.tar.gz
+if [ "$PLATFORM" = "mac" ]; then
+  brew install neovim
   echo "Neovim $(nvim --version | head -1) installed"
 else
-  echo "Neovim already up to date: $(nvim --version | head -1)"
+  if ! nvim --version 2>/dev/null | grep -q 'NVIM v0\.\(1[0-9]\|[2-9][0-9]\)'; then
+    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+    sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
+    sudo ln -sf /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/nvim
+    rm nvim-linux-x86_64.tar.gz
+    echo "Neovim $(nvim --version | head -1) installed"
+  else
+    echo "Neovim already up to date: $(nvim --version | head -1)"
+  fi
 fi
 
 # -----------------------------------------------------------
 # 3. Node.js (required for Mason LSP servers: pyright, jsonls, yamlls, ...)
 # -----------------------------------------------------------
 echo "[3/8] Installing Node.js..."
-if ! command -v node &>/dev/null; then
-  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-  sudo apt install -y nodejs
+if [ "$PLATFORM" = "mac" ]; then
+  brew install node
   echo "Node.js $(node --version) installed"
 else
-  echo "Node.js already installed: $(node --version)"
+  if ! command -v node &>/dev/null; then
+    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+    sudo apt install -y nodejs
+    echo "Node.js $(node --version) installed"
+  else
+    echo "Node.js already installed: $(node --version)"
+  fi
 fi
 
 # -----------------------------------------------------------
@@ -120,34 +154,39 @@ fi
 # 5. Go (>=1.23 for gopls; Ubuntu 22.04 apt golang-go is 1.18 = too old)
 # -----------------------------------------------------------
 echo "[5/8] Installing Go..."
-GO_VERSION="1.23.4"
-GO_REQUIRED_MAJOR=1
-GO_REQUIRED_MINOR=23
-need_go_install=true
-if command -v go &>/dev/null; then
-  current="$(go version | awk '{print $3}' | sed 's/go//')"
-  cur_major="${current%%.*}"
-  cur_rest="${current#*.}"
-  cur_minor="${cur_rest%%.*}"
-  if [ "$cur_major" -gt "$GO_REQUIRED_MAJOR" ] || \
-     { [ "$cur_major" -eq "$GO_REQUIRED_MAJOR" ] && [ "$cur_minor" -ge "$GO_REQUIRED_MINOR" ]; }; then
-    echo "Go already adequate: $(go version)"
-    need_go_install=false
-  else
-    echo "Go $current is too old, installing ${GO_VERSION}..."
+if [ "$PLATFORM" = "mac" ]; then
+  brew install go
+  echo "Go $(go version) installed"
+else
+  GO_VERSION="1.23.4"
+  GO_REQUIRED_MAJOR=1
+  GO_REQUIRED_MINOR=23
+  need_go_install=true
+  if command -v go &>/dev/null; then
+    current="$(go version | awk '{print $3}' | sed 's/go//')"
+    cur_major="${current%%.*}"
+    cur_rest="${current#*.}"
+    cur_minor="${cur_rest%%.*}"
+    if [ "$cur_major" -gt "$GO_REQUIRED_MAJOR" ] || \
+       { [ "$cur_major" -eq "$GO_REQUIRED_MAJOR" ] && [ "$cur_minor" -ge "$GO_REQUIRED_MINOR" ]; }; then
+      echo "Go already adequate: $(go version)"
+      need_go_install=false
+    else
+      echo "Go $current is too old, installing ${GO_VERSION}..."
+    fi
   fi
-fi
-if [ "$need_go_install" = true ]; then
-  tmpdir="$(mktemp -d)"
-  curl -fSL -o "${tmpdir}/go.tar.gz" "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz"
-  sudo rm -rf /usr/local/go
-  sudo tar -C /usr/local -xzf "${tmpdir}/go.tar.gz"
-  rm -rf "${tmpdir}"
-  # symlink into /usr/local/bin to guarantee it's on PATH (overrides /usr/bin/go via apt)
-  sudo ln -sf /usr/local/go/bin/go /usr/local/bin/go
-  sudo ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
-  hash -r 2>/dev/null || true
-  echo "Go $(/usr/local/go/bin/go version) installed"
+  if [ "$need_go_install" = true ]; then
+    tmpdir="$(mktemp -d)"
+    curl -fSL -o "${tmpdir}/go.tar.gz" "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz"
+    sudo rm -rf /usr/local/go
+    sudo tar -C /usr/local -xzf "${tmpdir}/go.tar.gz"
+    rm -rf "${tmpdir}"
+    # symlink into /usr/local/bin to guarantee it's on PATH (overrides /usr/bin/go via apt)
+    sudo ln -sf /usr/local/go/bin/go /usr/local/bin/go
+    sudo ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
+    hash -r 2>/dev/null || true
+    echo "Go $(/usr/local/go/bin/go version) installed"
+  fi
 fi
 
 # -----------------------------------------------------------
@@ -246,6 +285,9 @@ cat > "$HOME/.local/bin/claude" <<'WRAPPER'
 # nvim の :terminal claude (non-interactive shell) で claude が見つからない問題の回避。
 # PATH に nvm の bin dir が乗っていない context (vim/nvim の :terminal, cron,
 # IDE 直接起動など) からでも確実に claude を解決する。
+# readlink -f is not available on macOS; use python3 as portable fallback
+resolve_path() { python3 -c "import os; print(os.path.realpath('$1'))"; }
+
 export NVM_DIR="$HOME/.nvm"
 # shellcheck disable=SC1091
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
@@ -264,7 +306,7 @@ fi
 # 2. system Node + sudo npm install -g 経由で /usr/{local/,}bin/claude にある場合
 for candidate in /usr/local/bin/claude /usr/bin/claude; do
   # 自分自身を再帰呼び出しすると無限ループになるので除外
-  if [ -x "$candidate" ] && [ "$(readlink -f "$candidate")" != "$(readlink -f "$0")" ]; then
+  if [ -x "$candidate" ] && [ "$(resolve_path "$candidate")" != "$(resolve_path "$0")" ]; then
     exec "$candidate" "$@"
   fi
 done
