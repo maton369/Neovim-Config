@@ -2,16 +2,20 @@
 # Neovim development environment setup script
 # Tested on Ubuntu 22.04+
 #
-# Usage: setup.sh [--conda-kernels]
+# Usage: setup.sh [OPTIONS]
+#   --research       Jupyter/ノートブック環境を含める (luarocks, magick, jupytext,
+#                    jupyter, ipykernel 等)。デフォルトでは入れない。
 #   --conda-kernels  ~/{miniforge3,anaconda3,miniconda3}/envs/* で ipykernel が
 #                    入っている conda env を Jupyter kernel として登録する
 #                    (:MoltenInit のピッカーに並ぶ)。 デフォルトでは行わない。
 
 set -euo pipefail
 
+RESEARCH=false
 INSTALL_CONDA_KERNELS=false
 for arg in "$@"; do
   case "$arg" in
+    --research) RESEARCH=true ;;
     --conda-kernels) INSTALL_CONDA_KERNELS=true ;;
     -h|--help)
       sed -n '/^# Usage:/,/^$/p' "$0" | sed 's/^# \{0,1\}//'
@@ -25,6 +29,9 @@ for arg in "$@"; do
 done
 
 echo "=== Neovim Environment Setup ==="
+if $RESEARCH; then
+  echo "(--research mode: including Jupyter/notebook environment)"
+fi
 
 # -----------------------------------------------------------
 # 1. System packages
@@ -38,19 +45,36 @@ sudo apt install -y \
   build-essential cmake \
   ripgrep fd-find \
   python3 python3-pip python3-venv \
-  luarocks lua5.1 liblua5.1-0-dev libmagickwand-dev \
   xclip wl-clipboard
+
+if $RESEARCH; then
+  sudo apt install -y \
+    luarocks lua5.1 liblua5.1-0-dev libmagickwand-dev
+fi
 
 # fd-find is installed as 'fdfind' on Ubuntu; create symlink
 if command -v fdfind &>/dev/null && ! command -v fd &>/dev/null; then
   sudo ln -sf "$(which fdfind)" /usr/local/bin/fd
 fi
 
+# yazi (file manager for yazi.nvim)
+if ! command -v yazi &>/dev/null; then
+  echo "  → Installing yazi..."
+  curl -Lo /tmp/yazi.zip "https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unknown-linux-gnu.zip"
+  unzip -o /tmp/yazi.zip -d /tmp
+  sudo install /tmp/yazi-x86_64-unknown-linux-gnu/yazi /usr/local/bin
+  rm -rf /tmp/yazi.zip /tmp/yazi-x86_64-unknown-linux-gnu
+else
+  echo "  ✓ yazi (already installed)"
+fi
+
 # image.nvim (kitty graphics backend) needs lua-magick. Build it against
 # the system Lua 5.1 / ImageMagick libs installed above.
-if command -v luarocks &>/dev/null && ! [ -f "$HOME/.luarocks/lib/lua/5.1/magick.so" ]; then
-  luarocks --local --lua-version=5.1 install magick || \
-    echo "warning: luarocks install magick failed; image.nvim image rendering will be unavailable"
+if $RESEARCH; then
+  if command -v luarocks &>/dev/null && ! [ -f "$HOME/.luarocks/lib/lua/5.1/magick.so" ]; then
+    luarocks --local --lua-version=5.1 install magick || \
+      echo "warning: luarocks install magick failed; image.nvim image rendering will be unavailable"
+  fi
 fi
 
 # -----------------------------------------------------------
@@ -160,15 +184,20 @@ if [ ! -d "$VENV_DIR" ]; then
   python3 -m venv "$VENV_DIR"
 fi
 "$VENV_DIR/bin/pip" install --upgrade pip setuptools wheel
-"$VENV_DIR/bin/pip" install pynvim jupyter_client ipykernel jupytext jupyter ruff
-# notebook.lua / formatting.lua がベア名でこれらを呼ぶので PATH に通す
+"$VENV_DIR/bin/pip" install pynvim ruff
 mkdir -p "$HOME/.local/bin"
-ln -sf "$VENV_DIR/bin/jupytext" "$HOME/.local/bin/jupytext"
 ln -sf "$VENV_DIR/bin/ruff" "$HOME/.local/bin/ruff"
-# jupyter_client が connection JSON を書く runtime dir。 venv の jupyter は
-# XDG_RUNTIME_DIR を見ず fallback の ~/.local/share/jupyter/runtime を期待する
-# (が、 環境によっては自動作成されず ENOENT で :MoltenInit が落ちる)。
-mkdir -p "$HOME/.local/share/jupyter/runtime"
+
+if $RESEARCH; then
+  echo "  → Installing Jupyter/notebook packages..."
+  "$VENV_DIR/bin/pip" install jupyter_client ipykernel jupytext jupyter
+  # notebook.lua / formatting.lua がベア名でこれらを呼ぶので PATH に通す
+  ln -sf "$VENV_DIR/bin/jupytext" "$HOME/.local/bin/jupytext"
+  # jupyter_client が connection JSON を書く runtime dir。 venv の jupyter は
+  # XDG_RUNTIME_DIR を見ず fallback の ~/.local/share/jupyter/runtime を期待する
+  # (が、 環境によっては自動作成されず ENOENT で :MoltenInit が落ちる)。
+  mkdir -p "$HOME/.local/share/jupyter/runtime"
+fi
 echo "Notebook venv ready at $VENV_DIR"
 
 # -----------------------------------------------------------
@@ -266,6 +295,10 @@ echo "Run 'nvim' to start. Plugins will install automatically on first launch."
 echo "Note: claude (Claude Code CLI) 本体はこの script では入れない。"
 echo "      'npm install -g @anthropic-ai/claude-code' を別途実行すれば、"
 echo "      §8 のラッパー経由で nvim の右ペイン (terminal claude) が動く。"
+if ! $RESEARCH; then
+  echo "Note: Jupyter/ノートブック環境が必要な場合は"
+  echo "      './setup.sh --research' で再実行。"
+fi
 if [ "$INSTALL_CONDA_KERNELS" != "true" ]; then
   echo "Note: conda env を :MoltenInit のピッカーで使いたい場合は"
   echo "      './setup.sh --conda-kernels' で再実行 (ipykernel 入りの conda env を登録)。"

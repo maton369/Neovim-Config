@@ -41,6 +41,7 @@ powershell -ExecutionPolicy Bypass -File $env:LOCALAPPDATA\nvim\setup.ps1
 
 `setup.sh` のオプション:
 
+- `--research` — Jupyter/ノートブック環境を含める（luarocks, magick, jupytext, jupyter, ipykernel 等）。デフォルトでは入れない。
 - `--conda-kernels` — `~/{miniforge3,anaconda3,miniconda3}/envs/*` 配下で `ipykernel` が入っている conda env を Jupyter kernel として `--user` 登録する。`:MoltenInit` のピッカーに並ぶようになる。デフォルトでは行わない。
 
 ### リモートサーバで使う (SSH)
