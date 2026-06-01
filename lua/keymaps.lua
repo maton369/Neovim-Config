@@ -32,6 +32,11 @@ end
 map("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move line down" })
 map("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move line up" })
 
+-- jk で ESC（Insert / Visual / Command モード）
+map("i", "jk", "<Esc>", { desc = "Exit insert mode" })
+map("v", "jk", "<Esc>", { desc = "Exit visual mode" })
+map("c", "jk", "<C-c>", { desc = "Exit command mode" })
+
 -- 検索ハイライト解除
 map("n", "<Esc>", "<cmd>nohlsearch<cr>", { desc = "Clear search highlight" })
 
