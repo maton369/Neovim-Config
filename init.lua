@@ -1,6 +1,11 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
+-- 未使用プロバイダ無効化（起動時の実行ファイル検索を省く）
+vim.g.loaded_ruby_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_node_provider = 0
+
 -- luarocks パス（image.nvim の magick ライブラリ用）
 local home = vim.fn.expand("$HOME")
 package.path = package.path .. ";" .. home .. "/.luarocks/share/lua/5.1/?.lua;" .. home .. "/.luarocks/share/lua/5.1/?/init.lua"
@@ -33,7 +38,21 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- lua/plugins フォルダ内のファイルをすべて読み込む設定
-require("lazy").setup("plugins")
+require("lazy").setup("plugins", {
+  performance = {
+    rtp = {
+      disabled_plugins = {
+        "gzip",
+        "matchit",
+        "netrwPlugin",
+        "tarPlugin",
+        "tohtml",
+        "tutor",
+        "zipPlugin",
+      },
+    },
+  },
+})
 
 -- 起動時のレイアウト構築
 vim.api.nvim_create_autocmd("VimEnter", {

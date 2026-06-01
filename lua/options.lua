@@ -40,7 +40,11 @@ opt.splitbelow = true
 opt.splitright = true
 
 -- その他
-opt.clipboard = "unnamedplus"
+-- クリップボードプロバイダ検出を遅延（起動時の外部コマンド検索を回避）
+opt.clipboard = ""
+vim.schedule(function()
+  vim.opt.clipboard = "unnamedplus"
+end)
 opt.mouse = "a"
 opt.updatetime = 250
 opt.timeoutlen = 300

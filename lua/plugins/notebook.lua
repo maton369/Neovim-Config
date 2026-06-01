@@ -192,7 +192,6 @@ return {
     enabled = lang.notebook,
     version = "^1.0.0",
     build = ":UpdateRemotePlugins",
-    lazy = false,
     init = function()
       -- VSCode notebook 並みの大きさで画像 / セル出力を表示するための拡張。
       -- 旧設定 `molten_output_win_max_height = 40` だと matplotlib 標準の

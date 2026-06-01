@@ -53,7 +53,7 @@ return {
           vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
           -- inc-rename.nvim が <leader>rn を担当するためここでは設定しない
           vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-          vim.keymap.set("n", "<leader>D", vim.lsp.buf.type_definition, opts)
+          vim.keymap.set("n", "<leader>cD", vim.lsp.buf.type_definition, opts)
           vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
           vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
           vim.keymap.set("n", "<leader>dq", vim.diagnostic.setloclist, opts)

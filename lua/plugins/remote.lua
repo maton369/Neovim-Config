@@ -47,10 +47,10 @@ return {
       })
     end,
     keys = {
-      { "<leader>du", "<cmd>DevcontainerUp<cr>", desc = "DevContainer Up (start)" },
-      { "<leader>dc", "<cmd>DevcontainerConnect<cr>", desc = "DevContainer Connect" },
-      { "<leader>dd", "<cmd>DevcontainerDown<cr>", desc = "DevContainer Down (stop)" },
-      { "<leader>de", "<cmd>DevcontainerExec<cr>", desc = "DevContainer Exec" },
+      { "<leader>Du", "<cmd>DevcontainerUp<cr>", desc = "DevContainer Up (start)" },
+      { "<leader>Dc", "<cmd>DevcontainerConnect<cr>", desc = "DevContainer Connect" },
+      { "<leader>Dd", "<cmd>DevcontainerDown<cr>", desc = "DevContainer Down (stop)" },
+      { "<leader>De", "<cmd>DevcontainerExec<cr>", desc = "DevContainer Exec" },
     },
   },
 }

@@ -8,6 +8,7 @@ return {
         { "<leader>g", group = "Git" },
         { "<leader>c", group = "Code" },
         { "<leader>d", group = "Diagnostics" },
+        { "<leader>D", group = "DevContainer" },
         { "<leader>r", group = "Rename" },
         { "<leader>t", group = "Terminal" },
         { "<leader>b", group = "Debug" },

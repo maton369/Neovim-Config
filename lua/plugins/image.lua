@@ -1,21 +1,15 @@
 return {
   {
     "3rd/image.nvim",
-    ft = { "markdown", "norg", "python" },
+    event = "VeryLazy",
     opts = {
       backend = "kitty",
       integrations = {
         markdown = { enabled = true },
       },
-      max_width_window_percentage = 100,
-      max_height_window_percentage = 100,
-      -- scale_factor は画像をセル換算サイズに変換するときの倍率。 デフォルト 1.0 だと
-      -- matplotlib 標準 figsize (= 600x300 px ≈ 75 col × 30 行) はウィンドウより小さく
-      -- 表示される。 3.0 を入れて scale 後のサイズが必ずウィンドウより大きくなるよう
-      -- にし、 後続の max_*_window_percentage = 100 で window 一杯にクランプさせる。
-      -- renderer.lua の adjust_to_aspect_ratio がアスペクト比を保持するので、
-      -- 縦長/横長画像でも歪まず VSCode notebook の inline 表示と同程度の大きさになる。
-      scale_factor = 3.0,
+      max_width_window_percentage = 60,
+      max_height_window_percentage = 40,
+      scale_factor = 1.0,
       window_overlap_clear_enabled = true,
     },
     config = function(_, opts)
@@ -57,7 +51,7 @@ return {
       -- 送出し、 手元 tmux が剥がして Ghostty に渡してくれる。
       -- 副作用: tmux ペイン位置取得 cmd が失敗するが silent fallback で 0,0 になる
       -- ので画像座標は問題なし。
-      if vim.env.SSH_CLIENT or vim.env.SSH_TTY then
+      if (vim.env.TERM or ""):match("^tmux") or vim.env.TMUX or vim.env.SSH_CLIENT or vim.env.SSH_TTY then
         for _, modname in ipairs({ "image/utils/tmux", "image.utils.tmux" }) do
           local ok, tmux = pcall(require, modname)
           if ok and type(tmux) == "table" then

@@ -52,7 +52,7 @@ return {
   -- auto-session（セッション自動保存/復元）
   {
     "rmagatti/auto-session",
-    lazy = false,
+    event = "VimEnter",
     opts = {
       suppressed_dirs = { "~/", "~/Downloads", "/tmp" },
       pre_save_cmds = {
