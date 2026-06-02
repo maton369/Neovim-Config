@@ -55,6 +55,12 @@ if [ "$PLATFORM" = "mac" ]; then
     exit 1
   fi
   brew install git curl wget cmake ripgrep fd python3 yazi
+  # macOS: pbcopy/pbpaste are built-in; verify availability
+  if command -v pbcopy &>/dev/null; then
+    echo "  ✓ clipboard: pbcopy/pbpaste (built-in)"
+  else
+    echo "  ⚠ pbcopy not found; clipboard integration may not work"
+  fi
 
   if $RESEARCH; then
     brew install luarocks imagemagick
@@ -69,6 +75,7 @@ else
     ripgrep fd-find \
     python3 python3-pip python3-venv \
     xclip wl-clipboard
+  echo "  ✓ clipboard: xclip + wl-clipboard installed"
 
   if $RESEARCH; then
     sudo apt install -y \
