@@ -77,6 +77,7 @@ return {
       }
       return {
         sections = {
+          lualine_b = { "branch", "diff", "diagnostics" },
           lualine_c = { "filename", hints_component },
         },
         inactive_sections = {
