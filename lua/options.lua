@@ -40,7 +40,21 @@ opt.splitbelow = true
 opt.splitright = true
 
 -- その他
--- クリップボードプロバイダ検出を遅延（起動時の外部コマンド検索を回避）
+-- SSH 環境では OSC52 を使用（X11/Wayland 不要でリモートからローカルにコピー可能）
+-- ローカルではクリップボードプロバイダ検出を遅延（起動時の外部コマンド検索を回避）
+if vim.env.SSH_TTY or vim.env.SSH_CLIENT then
+  vim.g.clipboard = {
+    name = "OSC 52",
+    copy = {
+      ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+    },
+    paste = {
+      ["+"] = require("vim.ui.clipboard.osc52").paste("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").paste("*"),
+    },
+  }
+end
 opt.clipboard = ""
 vim.schedule(function()
   vim.opt.clipboard = "unnamedplus"
