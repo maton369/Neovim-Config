@@ -49,8 +49,21 @@ local function copy_cell_image()
     return
   end
   local path = best.original_path
-  local ok, err = copy_image_to_clipboard(path)
-  if ok then
+
+  -- SSH 接続中 (リモートサーバ) の場合:
+  -- ローカルのクリップボードにコピーできないので、代わりに
+  -- clip-from-server コマンドを OSC 52 でクリップボードに送る。
+  -- ローカルのターミナルで貼り付けて実行 → 画像がクリップボードに入る。
+  if vim.env.SSH_CLIENT or vim.env.SSH_TTY then
+    local host = vim.env.SCP_HOST or vim.fn.hostname()
+    local cmd = string.format("clip-from-server %s %s", host, vim.fn.shellescape(path))
+    vim.fn.setreg("+", cmd)
+    vim.notify("Paste in local terminal:\n" .. cmd, vim.log.levels.INFO)
+    return
+  end
+
+  local success, err = copy_image_to_clipboard(path)
+  if success then
     vim.notify("Copied: " .. vim.fn.fnamemodify(path, ":t"), vim.log.levels.INFO)
   else
     vim.notify("Failed to copy image" .. (err and (": " .. err) or ""), vim.log.levels.ERROR)
