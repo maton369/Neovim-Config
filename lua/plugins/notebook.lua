@@ -137,6 +137,12 @@ vim.api.nvim_create_autocmd("BufReadPost", {
       if lines[#lines] == "" then
         table.remove(lines)
       end
+      -- LSP が既にアタッチしていると、バッファ全置換時に lsp/sync.lua の
+      -- compute_end_range が assert 失敗する (E5108)。 先にデタッチし、
+      -- filetype 設定後に Python LSP が自動で再アタッチされるようにする。
+      for _, client in ipairs(vim.lsp.get_clients({ bufnr = ev.buf })) do
+        vim.lsp.buf_detach_client(ev.buf, client.id)
+      end
       vim.api.nvim_buf_set_lines(ev.buf, 0, -1, false, lines)
       vim.bo[ev.buf].filetype = "python"
       vim.bo[ev.buf].modified = false
