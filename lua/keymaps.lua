@@ -92,7 +92,7 @@ vim.api.nvim_create_user_command("Download", function(opts)
     ssh_host = vim.env.SSH_CONNECTION:match("%S+%s+%S+%s+(%S+)")
   end
   host = ssh_host or host
-  local scp_cmd = string.format("scp %s@%s:%s ./", user, host, vim.fn.shellescape(file))
+  local scp_cmd = string.format("scp %s@%s:%s ~/Downloads/", user, host, vim.fn.shellescape(file))
   vim.fn.setreg("+", scp_cmd)
   vim.notify("Copied to clipboard:\n" .. scp_cmd, vim.log.levels.INFO)
 end, { nargs = "?", complete = "file", desc = "Copy scp download command to clipboard" })
