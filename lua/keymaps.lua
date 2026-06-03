@@ -85,13 +85,10 @@ vim.api.nvim_create_user_command("Download", function(opts)
     return
   end
   local user = vim.env.USER or "user"
-  local host = vim.fn.hostname()
-  -- SSH 接続元から見たホスト名: SSH_CONNECTION の宛先 IP を使う
-  local ssh_host = nil
-  if vim.env.SSH_CONNECTION then
-    ssh_host = vim.env.SSH_CONNECTION:match("%S+%s+%S+%s+(%S+)")
-  end
-  host = ssh_host or host
+  -- 優先順位: $SCP_HOST (ユーザー設定) > hostname
+  -- サーバの .bashrc 等で `export SCP_HOST=myserver` を設定すると
+  -- ローカルの ~/.ssh/config の Host 名と一致させられる
+  local host = vim.env.SCP_HOST or vim.fn.hostname()
   local scp_cmd = string.format("scp %s@%s:%s ~/Downloads/", user, host, vim.fn.shellescape(file))
   vim.fn.setreg("+", scp_cmd)
   vim.notify("Copied to clipboard:\n" .. scp_cmd, vim.log.levels.INFO)
