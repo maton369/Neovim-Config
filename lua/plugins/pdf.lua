@@ -4,7 +4,10 @@
 
 local group = vim.api.nvim_create_augroup("PdfViewer", { clear = true })
 
-vim.api.nvim_create_autocmd("BufReadPost", {
+-- BufReadCmd で PDF バイナリを読み込む前に横取りする。
+-- BufReadPost だと先にバイナリが buffer に入り、Neo-tree 等から開くと
+-- ゴミが表示されたり binary 判定で autocmd が飛ばないことがある。
+vim.api.nvim_create_autocmd("BufReadCmd", {
   group = group,
   pattern = "*.pdf",
   callback = function(ev)
@@ -14,6 +17,11 @@ vim.api.nvim_create_autocmd("BufReadPost", {
     end
 
     local pdf_path = vim.api.nvim_buf_get_name(ev.buf)
+    if not vim.loop.fs_stat(pdf_path) then
+      vim.notify("File not found: " .. pdf_path, vim.log.levels.ERROR)
+      return
+    end
+
     local tmp_dir = vim.fn.tempname() .. "_pdf"
     vim.fn.mkdir(tmp_dir, "p")
 
@@ -42,7 +50,7 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 
     -- Build markdown buffer with inline images
     local lines = {
-      "# " .. vim.fn.fnamemodify(pdf_path, ":t"),
+      "# " .. vim.fn.fnamemodify(pdf_path, ":t") .. "  (" .. #pages .. " pages)",
       "",
     }
     for i, page_path in ipairs(pages) do
@@ -52,7 +60,8 @@ vim.api.nvim_create_autocmd("BufReadPost", {
       table.insert(lines, "")
     end
 
-    -- Replace buffer content
+    -- Set buffer content (no binary data ever touches the buffer)
+    vim.bo[ev.buf].modifiable = true
     vim.api.nvim_buf_set_lines(ev.buf, 0, -1, false, lines)
     vim.bo[ev.buf].filetype = "markdown"
     vim.bo[ev.buf].buftype = "nofile"
