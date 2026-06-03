@@ -13,6 +13,17 @@ return {
       window_overlap_clear_enabled = true,
     },
     config = function(_, opts)
+      -- luarocks --local で入れた magick.so を Neovim の Lua ランタイムが見つけられない
+      -- 場合 magick_cli (外部 identify コマンド) にフォールバックし、一時ファイル消失で
+      -- エラーになる。 setup() より前に luarocks パスを通して magick luarock を優先させる。
+      local home = vim.fn.expand("~")
+      package.cpath = package.cpath
+        .. ";" .. home .. "/.luarocks/lib/lua/5.1/?.so"
+        .. ";" .. home .. "/.luarocks/lib64/lua/5.1/?.so"
+      package.path = package.path
+        .. ";" .. home .. "/.luarocks/share/lua/5.1/?.lua"
+        .. ";" .. home .. "/.luarocks/share/lua/5.1/?/init.lua"
+
       -- image.nvim utils/term.lua の get_tty() は io.popen("tty 2>/dev/null") で
       -- TTY パスを取ろうとするが、 stdin が pipe / 一部の embed context だと
       -- "tty: 端末ではありません" (ja_JP) や "not a tty" (en_US) が stdout に
@@ -62,6 +73,27 @@ return {
       end
 
       require("image").setup(opts)
+
+      -- E966 (Invalid line number) 抑止:
+      -- molten のセル出力をクリア/更新するとバッファ行数が変わるが、
+      -- image.nvim の render scheduler が古い行番号で screenpos() を呼んで
+      -- E966 を連発する。 renderer.render を pcall でラップして抑止する。
+      for _, modname in ipairs({ "image/renderer", "image.renderer" }) do
+        local ok, renderer = pcall(require, modname)
+        if ok and type(renderer) == "table" and renderer.render and not renderer._e966_patched then
+          local orig_render = renderer.render
+          renderer.render = function(...)
+            local success, err = pcall(orig_render, ...)
+            if not success then
+              local msg = tostring(err)
+              if not msg:match("E966") then
+                error(err, 2)
+              end
+            end
+          end
+          renderer._e966_patched = true
+        end
+      end
 
       -- molten-nvim → image.nvim の橋渡しモジュール (load_image_nvim) の image_size()
       -- は「画像の自然サイズ (画像 px ÷ セル px)」 のみ返し、 image.nvim の
