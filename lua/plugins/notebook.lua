@@ -124,8 +124,12 @@ vim.api.nvim_create_autocmd("BufReadPost", {
   pattern = "*.ipynb",
   callback = function(ev)
     local filename = vim.api.nvim_buf_get_name(ev.buf)
+    -- NOTE: Neovim の vim.fn.system() は stderr も戻り値に混ぜる。 id 無しセルの
+    -- .ipynb を読むと nbformat が出す MissingIDFieldWarning が buffer 先頭に
+    -- 混入し、 次回保存時の py:percent round-trip を壊して markdown セルが脱落
+    -- していた。 stderr を捨てて stdout (= py:percent) だけを buffer に入れる。
     local result = vim.fn.system(
-      "jupytext --to py:percent --from ipynb --output - " .. vim.fn.shellescape(filename)
+      "jupytext --to py:percent --from ipynb --output - " .. vim.fn.shellescape(filename) .. " 2>/dev/null"
     )
     if vim.v.shell_error == 0 then
       local lines = vim.split(result, "\n")
