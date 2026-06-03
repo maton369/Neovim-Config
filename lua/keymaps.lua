@@ -72,6 +72,33 @@ vim.api.nvim_create_user_command("Nbnew", function(opts)
   vim.cmd("edit " .. name)
 end, { nargs = "?", desc = "Create a new Jupyter notebook" })
 
+-- リモートファイルをローカルにダウンロード（scp コマンドをクリップボードにコピー）
+vim.api.nvim_create_user_command("Download", function(opts)
+  local file
+  if opts.args ~= "" then
+    file = vim.fn.fnamemodify(opts.args, ":p")
+  else
+    file = vim.fn.expand("%:p")
+  end
+  if file == "" then
+    vim.notify("No file specified", vim.log.levels.WARN)
+    return
+  end
+  local user = vim.env.USER or "user"
+  local host = vim.fn.hostname()
+  -- SSH 接続元から見たホスト名: SSH_CONNECTION の宛先 IP を使う
+  local ssh_host = nil
+  if vim.env.SSH_CONNECTION then
+    ssh_host = vim.env.SSH_CONNECTION:match("%S+%s+%S+%s+(%S+)")
+  end
+  host = ssh_host or host
+  local scp_cmd = string.format("scp %s@%s:%s ./", user, host, vim.fn.shellescape(file))
+  vim.fn.setreg("+", scp_cmd)
+  vim.notify("Copied to clipboard:\n" .. scp_cmd, vim.log.levels.INFO)
+end, { nargs = "?", complete = "file", desc = "Copy scp download command to clipboard" })
+
+map("n", "<leader>dl", "<cmd>Download<cr>", { desc = "Download: copy scp command" })
+
 -- チートシート表示
 vim.api.nvim_create_user_command("Cheatsheet", function()
   local lines = {
@@ -168,6 +195,7 @@ vim.api.nvim_create_user_command("Cheatsheet", function()
     "── Other ─────────────────────────────────────────────────────────",
     "  SPC nm       Minimap Toggle      SPC tw       Twilight Toggle",
     "  SPC xx       Trouble Diagnostics SPC fml      Make it Rain",
+    "  SPC dl       Download (scp)      :Download    Copy scp command",
     "  :Cheatsheet  This cheatsheet     :Nbnew       New Notebook",
     "",
     "  ※ SPC = Space  C- = Ctrl  M- = Alt  (V) = Visual mode",
