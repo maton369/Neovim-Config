@@ -62,11 +62,14 @@ vim.api.nvim_create_autocmd("VimEnter", {
     -- terminal claude / belowright split が予期せぬエラーになるので skip。
     -- setup.sh の `nvim --headless +Lazy! sync +UpdateRemotePlugins +qa` 用。
     if #vim.api.nvim_list_uis() == 0 then return end
-    vim.defer_fn(function()
-      -- 0. Lazy install UI など floating window が出ているうちはレイアウト構築を skip。
-      --    (only/split が floating window しか残らない / 衝突するとエラーになる)
+
+    local function try_layout(attempts)
+      -- Lazy install UI など floating window が出ているうちはリトライ待機。
       for _, win in ipairs(vim.api.nvim_list_wins()) do
         if vim.api.nvim_win_get_config(win).relative ~= "" then
+          if attempts > 0 then
+            vim.defer_fn(function() try_layout(attempts - 1) end, 500)
+          end
           return
         end
       end
@@ -97,7 +100,10 @@ vim.api.nvim_create_autocmd("VimEnter", {
       vim.cmd("wincmd h")
       -- 7. Neo-tree を開く
       pcall(vim.cmd, "Neotree show")
-    end, 500)
+    end
+
+    -- 最大 20 回 (10 秒) リトライ — Lazy UI が閉じた後にレイアウト構築
+    vim.defer_fn(function() try_layout(20) end, 500)
   end,
 })
 
