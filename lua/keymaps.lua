@@ -58,6 +58,21 @@ for _, lr in ipairs({ { "h", "left" }, { "j", "down" }, { "k", "up" }, { "l", "r
   end, { desc = "Terminal -> move " .. dir })
 end
 
+-- ターミナルモードでの UTF-8 安全ペースト。
+-- Neovim の libvterm はペースト時にマルチバイト UTF-8 をバイト境界で分割し
+-- 文字化けさせるバグがある (neovim/neovim#16245)。
+-- Cmd+V (Ghostty) の代わりにこのキーを使うと、Neovim のレジスタ経由で
+-- ペーストするため vterm を迂回して文字化けしない。
+map("t", "<C-S-v>", function()
+  local content = vim.fn.getreg("+")
+  if content ~= "" then
+    local chan = vim.b.terminal_job_id
+    if chan then
+      vim.api.nvim_chan_send(chan, content)
+    end
+  end
+end, { desc = "Paste to terminal (UTF-8 safe)" })
+
 -- バッファ保存
 map("n", "<leader>w", "<cmd>w<cr>", { desc = "Save" })
 map("n", "<leader>q", "<cmd>q<cr>", { desc = "Quit" })
@@ -170,6 +185,7 @@ vim.api.nvim_create_user_command("Cheatsheet", function()
     "  p → C-p/C-n  Yanky cycle         ih/ah        Cell text obj",
     "",
     "── Window / Buffer ──────────────────────────────────────────────",
+    "  C-S-v        Paste (UTF-8 safe)  (terminal mode, avoids vterm bug)",
     "  C-h/j/k/l   Window Move (tmux)  M-h/j/k/l   Window Resize",
     "  S-h / S-l    Prev/Next Buffer    SPC bd       Delete Buffer",
     "  C-1~4        Harpoon Files       SPC ha       Harpoon Add",
