@@ -61,8 +61,21 @@ end
 -- ターミナルモードでの UTF-8 安全ペースト。
 -- Neovim の libvterm はペースト時にマルチバイト UTF-8 をバイト境界で分割し
 -- 文字化けさせるバグがある (neovim/neovim#16245)。
--- Cmd+V (Ghostty) の代わりにこのキーを使うと、Neovim のレジスタ経由で
--- ペーストするため vterm を迂回して文字化けしない。
+-- vim.paste をオーバーライドして Cmd+V (ブラケットペースト) でも
+-- nvim_chan_send 経由で一括送信し、vterm を迂回して文字化けを防ぐ。
+local orig_paste = vim.paste
+vim.paste = function(lines, phase)
+  if vim.api.nvim_get_mode().mode == "t" then
+    local chan = vim.b.terminal_job_id
+    if chan then
+      vim.api.nvim_chan_send(chan, table.concat(lines, "\n"))
+      return true
+    end
+  end
+  return orig_paste(lines, phase)
+end
+
+-- C-S-v でも明示的にペースト可能（レジスタ経由）
 map("t", "<C-S-v>", function()
   local content = vim.fn.getreg("+")
   if content ~= "" then
