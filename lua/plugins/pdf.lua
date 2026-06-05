@@ -1,5 +1,5 @@
--- PDF viewer: convert pages to images via pdftoppm, display in markdown buffer
--- with image.nvim rendering.
+-- PDF viewer: convert pages to images via pdftoppm, display in buffer
+-- with image.nvim rendering (API direct call — avoids treesitter/nofile issues).
 -- Requires: poppler (pdftoppm) — installed via setup.sh §1.
 
 local group = vim.api.nvim_create_augroup("PdfViewer", { clear = true })
@@ -48,30 +48,66 @@ vim.api.nvim_create_autocmd("BufReadCmd", {
       return
     end
 
-    -- Build markdown buffer with inline images
+    -- Build buffer with page headers (images are rendered by image.nvim API below)
+    -- 各ページヘッダの行番号を記録して、その次の行に image.nvim で画像を配置する
     local lines = {
       "# " .. vim.fn.fnamemodify(pdf_path, ":t") .. "  (" .. #pages .. " pages)",
       "",
     }
+    local image_positions = {} -- { { line = 0-indexed row, path = "..." }, ... }
     for i, page_path in ipairs(pages) do
       table.insert(lines, string.format("## Page %d / %d", i, #pages))
       table.insert(lines, "")
-      table.insert(lines, string.format("![page %d](%s)", i, page_path))
+      -- 画像を配置する空行 (0-indexed)
+      local img_line = #lines -- #lines は次に挿入される行の 0-indexed 位置
+      table.insert(lines, "") -- 画像用の空行
       table.insert(lines, "")
+      table.insert(image_positions, { line = img_line, path = page_path })
     end
 
-    -- Set buffer content (no binary data ever touches the buffer)
+    -- Set buffer content
     vim.bo[ev.buf].modifiable = true
     vim.api.nvim_buf_set_lines(ev.buf, 0, -1, false, lines)
-    vim.bo[ev.buf].filetype = "markdown"
     vim.bo[ev.buf].buftype = "nofile"
     vim.bo[ev.buf].modifiable = false
     vim.bo[ev.buf].modified = false
 
-    -- Clean up temp images when buffer is wiped
+    -- image.nvim API で画像を直接配置（markdown 連携の treesitter 解析を迂回）
+    vim.defer_fn(function()
+      local ok, image_api = pcall(require, "image")
+      if not ok then return end
+
+      local win = vim.fn.bufwinid(ev.buf)
+      if win == -1 then return end
+
+      for _, pos in ipairs(image_positions) do
+        local img_ok, img = pcall(image_api.from_file, pos.path, {
+          buffer = ev.buf,
+          window = win,
+          with_virtual_padding = true,
+          namespace = "pdf_viewer",
+        })
+        if img_ok and img then
+          img.geometry = {
+            x = 0,
+            y = pos.line,
+          }
+          pcall(function() img:render() end)
+        end
+      end
+    end, 200)
+
+    -- Clean up temp images and image.nvim objects when buffer is wiped
     vim.api.nvim_create_autocmd("BufWipeout", {
       buffer = ev.buf,
       callback = function()
+        local ok, image_api = pcall(require, "image")
+        if ok then
+          local imgs = image_api.get_images({ buffer = ev.buf })
+          for _, img in ipairs(imgs) do
+            img:clear()
+          end
+        end
         vim.fn.delete(tmp_dir, "rf")
       end,
     })
