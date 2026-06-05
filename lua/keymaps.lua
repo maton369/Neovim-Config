@@ -86,6 +86,9 @@ map("t", "<C-S-v>", function()
   end
 end, { desc = "Paste to terminal (UTF-8 safe)" })
 
+-- ファイル全体をクリップボードにコピー
+map("n", "<leader>by", '<cmd>%y+<cr>', { desc = "Copy entire file" })
+
 -- バッファ保存
 map("n", "<leader>w", "<cmd>w<cr>", { desc = "Save" })
 map("n", "<leader>q", "<cmd>q<cr>", { desc = "Quit" })
@@ -201,6 +204,7 @@ vim.api.nvim_create_user_command("Cheatsheet", function()
     "  C-S-v        Paste (UTF-8 safe)  (terminal mode, avoids vterm bug)",
     "  C-h/j/k/l   Window Move (tmux)  M-h/j/k/l   Window Resize",
     "  S-h / S-l    Prev/Next Buffer    SPC bd       Delete Buffer",
+    "  SPC by       Copy entire file",
     "  C-1~4        Harpoon Files       SPC ha       Harpoon Add",
     "",
     "── Search & Replace ─────────────────────────────────────────────",
