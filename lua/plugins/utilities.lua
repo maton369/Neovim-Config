@@ -53,10 +53,6 @@ return {
   {
     "rmagatti/auto-session",
     event = "VimEnter",
-    -- SSH 経由ではセッション復元が VimEnter レイアウト構築と競合するため無効化
-    cond = function()
-      return not (vim.env.SSH_CLIENT or vim.env.SSH_TTY)
-    end,
     opts = {
       suppressed_dirs = { "~/", "~/Downloads", "/tmp" },
       pre_save_cmds = {
@@ -69,6 +65,19 @@ return {
               vim.api.nvim_buf_delete(buf, { force = true })
             end
           end
+        end,
+      },
+      -- セッション復元後にターミナルとウィンドウをリセット
+      -- VimEnter のレイアウト構築が白紙から組み立てられるようにする
+      post_restore_cmds = {
+        function()
+          for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+            if vim.bo[buf].buftype == "terminal" then
+              pcall(vim.api.nvim_buf_delete, buf, { force = true })
+            end
+          end
+          pcall(vim.cmd, "Neotree close")
+          pcall(vim.cmd, "only")
         end,
       },
       bypass_save_filetypes = { "neo-tree", "toggleterm", "trouble", "terminal" },
