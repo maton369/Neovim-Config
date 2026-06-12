@@ -53,6 +53,10 @@ return {
   {
     "rmagatti/auto-session",
     event = "VimEnter",
+    -- SSH 経由ではセッション復元が VimEnter レイアウト構築と競合するため無効化
+    cond = function()
+      return not (vim.env.SSH_CLIENT or vim.env.SSH_TTY)
+    end,
     opts = {
       suppressed_dirs = { "~/", "~/Downloads", "/tmp" },
       pre_save_cmds = {
