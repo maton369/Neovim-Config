@@ -63,6 +63,9 @@ vim.api.nvim_create_autocmd("VimEnter", {
     -- setup.sh の `nvim --headless +Lazy! sync +UpdateRemotePlugins +qa` 用。
     if #vim.api.nvim_list_uis() == 0 then return end
 
+    -- SSH 経由のリモート接続ではレイアウト構築をスキップ
+    if vim.env.SSH_CLIENT or vim.env.SSH_TTY then return end
+
     local function try_layout(attempts)
       -- Lazy install UI など floating window が出ているうちはリトライ待機。
       for _, win in ipairs(vim.api.nvim_list_wins()) do
