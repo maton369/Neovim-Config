@@ -67,19 +67,6 @@ return {
           end
         end,
       },
-      -- セッション復元後にターミナルとウィンドウをリセット
-      -- VimEnter のレイアウト構築が白紙から組み立てられるようにする
-      post_restore_cmds = {
-        function()
-          for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-            if vim.bo[buf].buftype == "terminal" then
-              pcall(vim.api.nvim_buf_delete, buf, { force = true })
-            end
-          end
-          pcall(vim.cmd, "Neotree close")
-          pcall(vim.cmd, "only")
-        end,
-      },
       bypass_save_filetypes = { "neo-tree", "toggleterm", "trouble", "terminal" },
     },
   },
