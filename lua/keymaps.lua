@@ -127,6 +127,45 @@ end, { nargs = "?", complete = "file", desc = "Copy scp download command to clip
 
 map("n", "<leader>dl", "<cmd>Download<cr>", { desc = "Download: copy scp command" })
 
+-- ローカル(Mac)のクリップボード画像をリモートへアップロードする one-liner をコピー。
+-- Download の逆向き: OSC52 でローカルのクリップボードに command を送り、Mac 側で実行する。
+-- 手順: (1) Mac でスクショを撮る (Cmd+Shift+Ctrl+4 → クリップボードへ)
+--       (2) nvim で :Upload → command がローカルのクリップボードにコピーされる
+--       (3) Mac のシェルに貼って実行 → pngpaste で画像を temp に書き出し scp で送信
+--       (4) 通知に出るリモートパスを Claude Code のプロンプトに貼る
+-- 前提: Mac 側に pngpaste (`brew install pngpaste`)。
+vim.api.nvim_create_user_command("Upload", function(opts)
+  local user = vim.env.USER or "user"
+  -- 優先順位: $SCP_HOST (ユーザー設定) > hostname （Download と揃える）
+  local host = vim.env.SCP_HOST or vim.fn.hostname()
+  -- リモート側の保存先ディレクトリ: 引数があればそれ、無ければ cwd
+  local remote_dir = opts.args ~= "" and vim.fn.fnamemodify(opts.args, ":p") or vim.fn.getcwd()
+  remote_dir = remote_dir:gsub("/$", "")
+  local name = string.format("cc_%d.png", os.time())
+  local remote_path = remote_dir .. "/" .. name
+  local local_tmp = "/tmp/" .. name
+  -- Mac 側で実行する one-liner: クリップボード画像を書き出し → scp → temp 削除
+  local cmd = string.format(
+    "pngpaste %s && scp %s %s@%s:%s && rm %s",
+    local_tmp,
+    local_tmp,
+    user,
+    host,
+    vim.fn.shellescape(remote_path),
+    local_tmp
+  )
+  vim.fn.setreg("+", cmd)
+  vim.notify(
+    "Copied upload command (run on your Mac):\n"
+      .. cmd
+      .. "\n\nThen reference in Claude Code:\n"
+      .. remote_path,
+    vim.log.levels.INFO
+  )
+end, { nargs = "?", complete = "dir", desc = "Copy scp upload command for clipboard screenshot" })
+
+map("n", "<leader>du", "<cmd>Upload<cr>", { desc = "Upload: copy scp command (clipboard screenshot)" })
+
 -- チートシート表示
 vim.api.nvim_create_user_command("Cheatsheet", function()
   local lines = {
@@ -226,6 +265,7 @@ vim.api.nvim_create_user_command("Cheatsheet", function()
     "  SPC nm       Minimap Toggle      SPC tw       Twilight Toggle",
     "  SPC xx       Trouble Diagnostics SPC fml      Make it Rain",
     "  SPC dl       Download (scp)      :Download    Copy scp command",
+    "  SPC du       Upload (scp)        :Upload      Clipboard screenshot",
     "  :Cheatsheet  This cheatsheet     :Nbnew       New Notebook",
     "",
     "  ※ SPC = Space  C- = Ctrl  M- = Alt  (V) = Visual mode",
